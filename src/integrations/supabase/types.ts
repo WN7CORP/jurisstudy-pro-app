@@ -318,6 +318,42 @@ export type Database = {
         }
         Relationships: []
       }
+      jogos_juridicos: {
+        Row: {
+          created_at: string | null
+          dados: Json
+          id: string
+          materia: string
+          nivel_dificuldade: string
+          nome: string
+          tema: string
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dados: Json
+          id?: string
+          materia: string
+          nivel_dificuldade: string
+          nome: string
+          tema: string
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dados?: Json
+          id?: string
+          materia?: string
+          nivel_dificuldade?: string
+          nome?: string
+          tema?: string
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       jurisprudencias: {
         Row: {
           anotacoes: string | null
@@ -616,6 +652,53 @@ export type Database = {
           user_type?: string | null
         }
         Relationships: []
+      }
+      progresso_jogos: {
+        Row: {
+          completado: boolean | null
+          created_at: string | null
+          dados_progresso: Json | null
+          id: string
+          jogo_id: string
+          pontuacao: number | null
+          tentativas: number | null
+          ultima_jogada: string | null
+          updated_at: string | null
+          usuario_id: string
+        }
+        Insert: {
+          completado?: boolean | null
+          created_at?: string | null
+          dados_progresso?: Json | null
+          id?: string
+          jogo_id: string
+          pontuacao?: number | null
+          tentativas?: number | null
+          ultima_jogada?: string | null
+          updated_at?: string | null
+          usuario_id: string
+        }
+        Update: {
+          completado?: boolean | null
+          created_at?: string | null
+          dados_progresso?: Json | null
+          id?: string
+          jogo_id?: string
+          pontuacao?: number | null
+          tentativas?: number | null
+          ultima_jogada?: string | null
+          updated_at?: string | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_jogos_jogo_id_fkey"
+            columns: ["jogo_id"]
+            isOneToOne: false
+            referencedRelation: "jogos_juridicos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       questoes: {
         Row: {
