@@ -4,8 +4,9 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Check, X, Loader2 } from 'lucide-react';
+import { Check, X, Loader2, AlertTriangle } from 'lucide-react';
 import type { SubscriptionPlan } from './PlanFeatures';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * Tabela de Funções - SubscriptionCard.tsx
@@ -28,10 +29,12 @@ interface SubscriptionCardProps {
 export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubscribe = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Verificar se o usuário está autenticado
       const { data: { session } } = await supabase.auth.getSession();
@@ -54,6 +57,7 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
       
       if (error) {
         console.error('Erro ao iniciar checkout:', error);
+        setError(`Erro: ${error.message}`);
         throw error;
       }
       
@@ -62,15 +66,20 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
         window.location.href = data.url;
       } else {
         console.error('URL de checkout não recebida:', data);
+        setError('URL de checkout não recebida');
         throw new Error('URL de checkout não recebida');
       }
     } catch (error) {
       console.error('Erro completo ao assinar:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Não foi possível iniciar o processo de assinatura.",
+        description: `Não foi possível iniciar o processo de assinatura. ${errorMessage}`,
       });
+      
+      setError(`Não foi possível iniciar o processo de assinatura. ${errorMessage}`);
       setLoading(false);
     }
   };
@@ -101,6 +110,13 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
             </li>
           ))}
         </ul>
+        
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
       </CardContent>
       <CardFooter>
         <Button 

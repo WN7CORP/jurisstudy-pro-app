@@ -8,19 +8,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Tabela de Funções - create-checkout
+ * -------------------------------------------------------------------------------------------------
+ * | Função                  | Descrição                                                           |
+ * |-------------------------|---------------------------------------------------------------------|
+ * | serve                   | Função principal que processa as requisições HTTP e cria uma sessão |
+ * |                         | de checkout no Stripe para iniciar o processo de assinatura.        |
+ * -------------------------------------------------------------------------------------------------
+ */
+
+// IDs dos planos no Stripe (estes são exemplos, você deve substituir pelos seus IDs reais)
 const PRICE_IDS = {
-  estudante: {
-    amount: 1199,
-    name: "Plano Estudante"
-  },
-  platina: {
-    amount: 1999,
-    name: "Plano Platina"
-  },
-  magistral: {
-    amount: 2999,
-    name: "Plano Magistral"
-  }
+  estudante: "price_estudante", // Substitua pelo ID real do preço do plano Estudante
+  platina: "price_platina",     // Substitua pelo ID real do preço do plano Platina
+  magistral: "price_magistral"  // Substitua pelo ID real do preço do plano Magistral
+};
+
+// Função auxiliar para logging
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -30,7 +38,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log("Função create-checkout iniciada");
+    logStep("Função create-checkout iniciada");
     
     // Create Supabase client with anon key for authentication
     const supabaseClient = createClient(
@@ -41,7 +49,7 @@ serve(async (req) => {
     // Verificar autenticação do usuário
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.log("Erro: Header de autorização não encontrado");
+      logStep("Erro: Header de autorização não encontrado");
       throw new Error('Não autorizado');
     }
     
@@ -49,72 +57,66 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
-      console.log("Erro ao autenticar usuário:", userError);
+      logStep("Erro ao autenticar usuário:", userError);
       throw new Error('Usuário não encontrado');
     }
     
     const user = userData.user;
-    console.log("Usuário autenticado:", user.email);
+    logStep("Usuário autenticado:", { email: user.email });
 
     // Obter o ID do plano do body da requisição
     const body = await req.json();
     const priceId = body.priceId;
     
     if (!priceId || !PRICE_IDS[priceId as keyof typeof PRICE_IDS]) {
-      console.log("Erro: ID de plano inválido:", priceId);
+      logStep("Erro: ID de plano inválido:", { priceId });
       throw new Error('Plano inválido');
     }
     
-    const planDetails = PRICE_IDS[priceId as keyof typeof PRICE_IDS];
-    console.log("Plano selecionado:", priceId, planDetails);
+    const stripeProductId = PRICE_IDS[priceId as keyof typeof PRICE_IDS];
+    logStep("Plano selecionado:", { priceId, stripeProductId });
 
     // Inicializar o Stripe
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
-      console.log("Erro: Chave do Stripe não configurada");
+      logStep("Erro: Chave do Stripe não configurada");
       throw new Error('Chave do Stripe não configurada');
     }
     
-    console.log("Inicializando Stripe...");
+    logStep("Inicializando Stripe...");
     const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     });
 
     // Verificar se o cliente já existe no Stripe
-    console.log("Buscando cliente no Stripe...");
+    logStep("Buscando cliente no Stripe...");
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined = customers.data[0]?.id;
-    console.log("Cliente existente:", customerId ? "Sim" : "Não");
+    logStep("Cliente existente:", { exists: !!customerId });
 
     // Se o cliente não existir, criar um novo
     if (!customerId) {
-      console.log("Criando novo cliente...");
+      logStep("Criando novo cliente...");
       const customer = await stripe.customers.create({
         email: user.email,
         name: user.user_metadata?.full_name || user.email,
       });
       customerId = customer.id;
-      console.log("Novo cliente criado:", customerId);
+      logStep("Novo cliente criado:", { customerId });
     }
 
     // Criar a sessão de checkout
     const origin = req.headers.get('origin') || 'http://localhost:3000';
-    console.log("Criando sessão de checkout...");
+    logStep("Criando sessão de checkout...", { 
+      customer: customerId,
+      priceId: stripeProductId 
+    });
+    
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
-          price_data: {
-            currency: 'brl',
-            product_data: {
-              name: planDetails.name,
-              description: `Acesso completo ao ${planDetails.name}`,
-            },
-            unit_amount: planDetails.amount,
-            recurring: {
-              interval: 'month',
-            },
-          },
+          price: stripeProductId,
           quantity: 1,
         },
       ],
@@ -123,8 +125,10 @@ serve(async (req) => {
       cancel_url: `${origin}/assinatura`,
     });
 
-    console.log("Sessão criada com sucesso:", session.id);
-    console.log("URL de checkout:", session.url);
+    logStep("Sessão criada com sucesso:", { 
+      id: session.id,
+      url: session.url 
+    });
 
     // Retornar a URL da sessão de checkout
     return new Response(JSON.stringify({ url: session.url }), {
