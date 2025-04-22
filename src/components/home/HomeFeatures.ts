@@ -1,74 +1,143 @@
 
-import { Book, BookOpen, FileText, FlaskConical, Gavel, Video, Bot, BrainCircuit, LucideIcon } from "lucide-react";
+import { 
+  Book, BookOpen, FileText, FlaskConical, Gavel, Video, Bot, BrainCircuit, 
+  LucideIcon, Map, TrendingUp, CheckCircle2, HelpCircle, FilePen, BookText,
+  Newspaper, Gamepad, Languages
+} from "lucide-react";
 
-interface Feature {
+export interface Feature {
   id: string;
   title: string;
   description: string;
   icon: LucideIcon;
   href: string;
+  isFavorite?: boolean;
 }
 
-export const mainFeatures: Feature[] = [
+// 1. Estudo Rápido
+export const quickStudyFeatures: Feature[] = [
   {
     id: "1",
-    title: "Vídeo-aulas",
-    description: "Aprenda com professores especialistas em cada área do Direito.",
-    icon: Video,
-    href: "/video-aulas"
-  },
-  {
-    id: "2",
-    title: "Biblioteca Jurídica",
-    description: "Acesse livros, artigos e materiais exclusivos para o seu estudo.",
-    icon: Book,
-    href: "/biblioteca"
-  },
-  {
-    id: "3",
     title: "Flashcards",
-    description: "Memorize conceitos importantes de forma rápida e eficiente.",
+    description: "Revise em minutos",
     icon: FlaskConical,
     href: "/flashcards"
   },
   {
-    id: "4",
+    id: "2",
     title: "Resumos",
-    description: "Conteúdo essencial de cada disciplina com os principais pontos.",
+    description: "Conteúdo direto ao ponto",
     icon: FileText,
     href: "/resumos"
+  },
+  {
+    id: "3",
+    title: "Mapas Mentais",
+    description: "Visualize e conecte ideias",
+    icon: Map,
+    href: "/mapas-mentais"
+  },
+  {
+    id: "4",
+    title: "Biblioteca",
+    description: "Doutrinas, manuais e eBooks",
+    icon: Book,
+    href: "/biblioteca"
+  },
+  {
+    id: "5",
+    title: "Vídeo-aulas",
+    description: "Aulas objetivas por tema",
+    icon: Video,
+    href: "/video-aulas"
   }
 ];
 
+// 2. Prática e Treinamento
 export const practiceFeatures: Feature[] = [
   {
-    id: "5",
+    id: "6",
     title: "Simulados",
-    description: "Teste seus conhecimentos com questões de provas anteriores.",
+    description: "Treine como na OAB",
     icon: BrainCircuit,
     href: "/simulados"
   },
   {
-    id: "6",
+    id: "7",
+    title: "Ranking de Estudos",
+    description: "Acompanhe seu desempenho",
+    icon: TrendingUp,
+    href: "/ranking"
+  },
+  {
+    id: "8",
+    title: "Jurisflix",
+    description: "Casos reais explicados",
+    icon: Video,
+    href: "/jurisflix"
+  },
+  {
+    id: "9",
+    title: "Questões",
+    description: "Teste seus conhecimentos",
+    icon: HelpCircle,
+    href: "/questoes"
+  }
+];
+
+// 3. Ferramentas Jurídicas
+export const legalToolsFeatures: Feature[] = [
+  {
+    id: "10",
     title: "Vade-Mecum",
-    description: "Consulte a legislação atualizada e comentada por especialistas.",
+    description: "Leis organizadas e atualizadas",
     icon: BookOpen,
     href: "/vade-mecum"
   },
   {
-    id: "7",
-    title: "Jurisprudência",
-    description: "Acesse decisões importantes dos principais tribunais.",
-    icon: Gavel,
-    href: "/jurisprudencia"
+    id: "11",
+    title: "Peticionário",
+    description: "Modelos prontos para prática",
+    icon: FilePen,
+    href: "/peticionario"
   },
   {
-    id: "8",
-    title: "Assistente",
-    description: "Tire dúvidas e receba auxílio personalizado da nossa IA.",
-    icon: Bot,
-    href: "/assistente"
+    id: "12",
+    title: "Dicionário Jurídico",
+    description: "Termos explicados com clareza",
+    icon: BookText,
+    href: "/dicionario"
   }
 ];
 
-export type { Feature };
+// 4. Extra e Inteligência
+export const extraFeatures: Feature[] = [
+  {
+    id: "13",
+    title: "Assistente Evelyn",
+    description: "Tire dúvidas por voz ou texto",
+    icon: Bot,
+    href: "/assistente"
+  },
+  {
+    id: "14",
+    title: "Notícias Jurídicas",
+    description: "Fique por dentro das novidades",
+    icon: Newspaper,
+    href: "/noticias"
+  },
+  {
+    id: "15",
+    title: "Bloger",
+    description: "Conteúdo leve sobre Direito",
+    icon: FileText,
+    href: "/bloger"
+  },
+  {
+    id: "16",
+    title: "Jogos Jurídicos",
+    description: "Aprenda de forma divertida",
+    icon: Gamepad,
+    href: "/jogos"
+  }
+];

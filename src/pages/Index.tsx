@@ -6,7 +6,12 @@ import FeaturesCarousel from "@/components/home/FeaturesCarousel";
 import RecentActivity from "@/components/home/RecentActivity";
 import StudyProgress from "@/components/home/StudyProgress";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
-import { mainFeatures, practiceFeatures } from "@/components/home/HomeFeatures";
+import { 
+  quickStudyFeatures, 
+  practiceFeatures, 
+  legalToolsFeatures, 
+  extraFeatures 
+} from "@/components/home/HomeFeatures";
 
 const Index = () => {
   return (
@@ -20,21 +25,39 @@ const Index = () => {
         </div>
 
         <div className="grid md:grid-cols-4 grid-cols-1 xl:grid-cols-5 gap-4">
-          <div className="xl:col-span-4 col-span-full grid md:grid-cols-4 grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="xl:col-span-4 col-span-full grid md:grid-cols-4 grid-cols-1 sm:grid-cols-2 gap-6">
             <WelcomeBanner />
             
-            {/* Section: Estudo */}
+            {/* Seção: Estudo Rápido */}
             <div className="md:col-span-4 col-span-full">
-              <h2 className="text-xl font-semibold text-netflix-offWhite mb-4">Estudo</h2>
-              <FeaturesCarousel features={mainFeatures} />
+              <FeaturesCarousel 
+                features={quickStudyFeatures} 
+                categoryTitle="Estudo Rápido"
+              />
             </div>
             
-            {/* Section: Prática e Treinamento */}
+            {/* Seção: Prática e Treinamento */}
             <div className="md:col-span-4 col-span-full">
-              <h2 className="text-xl font-semibold text-netflix-offWhite mb-4">
-                Prática e Treinamento
-              </h2>
-              <FeaturesCarousel features={practiceFeatures} />
+              <FeaturesCarousel 
+                features={practiceFeatures} 
+                categoryTitle="Prática e Treinamento"
+              />
+            </div>
+
+            {/* Seção: Ferramentas Jurídicas */}
+            <div className="md:col-span-4 col-span-full">
+              <FeaturesCarousel 
+                features={legalToolsFeatures} 
+                categoryTitle="Ferramentas Jurídicas"
+              />
+            </div>
+
+            {/* Seção: Extra e Inteligência */}
+            <div className="md:col-span-4 col-span-full">
+              <FeaturesCarousel 
+                features={extraFeatures} 
+                categoryTitle="Extra e Inteligência"
+              />
             </div>
           </div>
           
