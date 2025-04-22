@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -225,6 +226,16 @@ const Flashcards: React.FC = () => {
           // Para cada playlist, buscar a contagem de flashcards
           const playlistsWithCounts = await Promise.all(
             data.map(async (playlist) => {
+              // Verificar se playlist é um objeto válido com id
+              if (!playlist || typeof playlist !== 'object' || !('id' in playlist)) {
+                return {
+                  id: 'unknown',
+                  name: 'Playlist desconhecida',
+                  description: null,
+                  flashcard_count: 0
+                };
+              }
+
               const { count, error: countError } = await supabase
                 .from('playlist_flashcards' as any)
                 .select('*', { count: 'exact', head: true })

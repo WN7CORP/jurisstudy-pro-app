@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,7 +97,6 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       
       const userId = sessionData.session.user.id;
       
-      // Criar playlist
       const newPlaylist: Omit<Playlist, 'id' | 'created_at' | 'updated_at'> = {
         user_id: userId,
         name,
@@ -115,7 +113,10 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
         throw playlistError || new Error("Não foi possível criar a playlist");
       }
       
-      // Adicionar flashcards à playlist
+      if (!playlistData || typeof playlistData !== 'object' || !('id' in playlistData)) {
+        throw new Error("Resposta inválida do servidor ao criar playlist");
+      }
+      
       const playlistItems: PlaylistItem[] = selectedCards.map((card, index) => ({
         playlist_id: playlistData.id as string,
         flashcard_id: card.id,
