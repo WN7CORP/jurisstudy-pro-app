@@ -4,6 +4,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
 import type { SubscriptionPlan } from './PlanFeatures';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface SubscriptionCardProps {
   plan: SubscriptionPlan;
@@ -11,8 +13,26 @@ interface SubscriptionCardProps {
 }
 
 export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
-  const handleSubscribe = () => {
-    window.location.href = plan.kiwifyUrl;
+  const { toast } = useToast();
+
+  const handleSubscribe = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
+        body: { priceId: plan.priceId },
+      });
+
+      if (error) throw error;
+      if (!data?.url) throw new Error('URL de checkout não encontrada');
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Erro ao iniciar checkout:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao processar pagamento",
+        description: "Não foi possível iniciar o checkout. Tente novamente mais tarde."
+      });
+    }
   };
 
   return (
