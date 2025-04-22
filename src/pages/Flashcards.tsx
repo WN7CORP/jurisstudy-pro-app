@@ -250,7 +250,7 @@ const Flashcards: React.FC = () => {
           const playlistsWithCounts = await Promise.all(
             data.map(async (playlist) => {
               // Verificar se playlist é um objeto válido com id
-              if (!playlist || typeof playlist !== 'object' || !('id' in playlist)) {
+              if (!playlist || typeof playlist !== 'object') {
                 return {
                   id: 'unknown',
                   name: 'Playlist desconhecida',
@@ -259,7 +259,18 @@ const Flashcards: React.FC = () => {
                 };
               }
 
-              const playlistId = playlist.id as string;
+              // Usar type assertion para acessar a propriedade id
+              const playlistObj = playlist as any;
+              const playlistId = playlistObj.id as string;
+              
+              if (!playlistId) {
+                return {
+                  id: 'unknown',
+                  name: playlistObj.name || 'Playlist desconhecida',
+                  description: playlistObj.description || null,
+                  flashcard_count: 0
+                };
+              }
 
               const { count, error: countError } = await supabase
                 .from('playlist_flashcards' as any)
@@ -267,10 +278,10 @@ const Flashcards: React.FC = () => {
                 .eq('playlist_id', playlistId);
                 
               // Criar objeto de playlist com contagem
-              const playlistWithCount: Playlist = {
+              const playlistWithCount = {
                 id: playlistId,
-                name: playlist.name as string,
-                description: playlist.description as string | null,
+                name: playlistObj.name as string || 'Sem nome',
+                description: playlistObj.description as string | null,
                 flashcard_count: countError ? 0 : (count || 0)
               };
               

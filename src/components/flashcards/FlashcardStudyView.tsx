@@ -80,7 +80,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
       
       if (sessionData?.session?.user?.id) {
         // Tentar obter do banco de dados se o usuário estiver logado
-        const { data, error } = await supabase
+        const result = await supabase
           .from('user_flashcard_progress' as any)
           .select('display_mode, selected_themes')
           .eq('user_id', sessionData.session.user.id)
@@ -88,8 +88,9 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
           .limit(1)
           .single();
           
-        if (!error && data) {
-          setDisplayMode(data.display_mode as 'combined' | 'flip' || 'combined');
+        if (!result.error && result.data) {
+          const data = result.data;
+          setDisplayMode((data.display_mode as 'combined' | 'flip') || 'combined');
           if (data.selected_themes && Array.isArray(data.selected_themes)) {
             setSelectedThemes(data.selected_themes);
           }

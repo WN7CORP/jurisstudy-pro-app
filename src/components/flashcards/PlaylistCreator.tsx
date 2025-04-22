@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,11 +124,17 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
         throw playlistError || new Error("Não foi possível criar a playlist");
       }
       
-      if (!playlistData || typeof playlistData !== 'object' || !('id' in playlistData)) {
+      // Verificar se playlistData é válido e contém um id
+      if (!playlistData || typeof playlistData !== 'object') {
         throw new Error("Resposta inválida do servidor ao criar playlist");
       }
       
-      const playlistId = playlistData.id as string;
+      // Usar type assertion para acessar a propriedade id
+      const playlistId = (playlistData as any).id as string;
+      
+      if (!playlistId) {
+        throw new Error("ID da playlist não encontrado na resposta");
+      }
       
       const playlistItems: PlaylistItem[] = selectedCards.map((card, index) => ({
         playlist_id: playlistId,

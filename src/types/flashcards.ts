@@ -44,6 +44,12 @@ export interface StudyPreferences {
   lastPosition?: number;
 }
 
+// Define um tipo para representar a resposta do Supabase
+export interface SupabaseQueryResult<T> {
+  data: T | null;
+  error: any;
+}
+
 /**
  * Tabela de funções utilizadas nos flashcards
  * 
