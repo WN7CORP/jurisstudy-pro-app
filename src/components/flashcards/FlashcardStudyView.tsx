@@ -16,6 +16,17 @@ interface FlashcardStudyViewProps {
   onComplete: () => void;
 }
 
+// Definição da interface para o progresso do usuário
+interface UserProgress {
+  id?: string;
+  user_id: string;
+  flashcard_id: number;
+  correct_count: number;
+  incorrect_count: number;
+  confidence_level: number;
+  last_reviewed: string;
+}
+
 const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComplete }) => {
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -55,16 +66,23 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
       
       const userId = sessionData.session.user.id;
       
-      // Get current progress
-      const { data: existingProgress } = await supabase
+      // Verificar progresso existente usando a API genérica do Supabase para contornar problemas de tipo
+      const { data: existingProgressData, error: fetchError } = await supabase
         .from('user_flashcard_progress')
         .select('*')
         .eq('user_id', userId)
         .eq('flashcard_id', currentCard.id)
-        .single();
+        .maybeSingle();
+      
+      if (fetchError) {
+        console.error("Erro ao buscar progresso:", fetchError);
+        throw fetchError;
+      }
+      
+      const existingProgress = existingProgressData as UserProgress | null;
       
       if (existingProgress) {
-        // Update existing progress
+        // Atualizar progresso existente
         const { error } = await supabase
           .from('user_flashcard_progress')
           .update({
@@ -75,27 +93,29 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
               : Math.max(0, existingProgress.confidence_level - 1),
             last_reviewed: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          })
+          } as any)
           .eq('id', existingProgress.id);
         
         if (error) throw error;
       } else {
-        // Create new progress entry
+        // Criar nova entrada de progresso
+        const newProgress: Omit<UserProgress, 'id'> = {
+          user_id: userId,
+          flashcard_id: currentCard.id,
+          correct_count: correct ? 1 : 0,
+          incorrect_count: !correct ? 1 : 0,
+          confidence_level: correct ? 1 : 0,
+          last_reviewed: new Date().toISOString()
+        };
+        
         const { error } = await supabase
           .from('user_flashcard_progress')
-          .insert({
-            user_id: userId,
-            flashcard_id: currentCard.id,
-            correct_count: correct ? 1 : 0,
-            incorrect_count: !correct ? 1 : 0,
-            confidence_level: correct ? 1 : 0,
-            last_reviewed: new Date().toISOString()
-          });
+          .insert(newProgress as any);
         
         if (error) throw error;
       }
       
-      // Update local state
+      // Atualizar estado local
       setProgress(prev => ({
         ...prev,
         [currentCard.id]: correct 
@@ -103,7 +123,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
           : Math.max(0, (prev[currentCard.id] || 0) - 1)
       }));
       
-      // Move to next card
+      // Ir para o próximo cartão
       handleNext();
       
     } catch (error) {

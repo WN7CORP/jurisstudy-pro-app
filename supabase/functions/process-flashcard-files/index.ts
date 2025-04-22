@@ -8,6 +8,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface FlashcardRequest {
+  fileType: 'pdf' | 'image' | 'audio';
+  fileContent: string;
+  area: string;
+  userId: string;
+}
+
+interface FlashcardData {
+  area: string;
+  tema: string;
+  pergunta: string;
+  resposta: string;
+  explicacao: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -29,7 +44,8 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') as string;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { fileType, fileContent, area, userId } = await req.json();
+    const requestData: FlashcardRequest = await req.json();
+    const { fileType, fileContent, area, userId } = requestData;
 
     if (!fileType || !fileContent || !area || !userId) {
       return new Response(
@@ -60,7 +76,7 @@ serve(async (req) => {
     });
 
     const data = await response.json();
-    let flashcards = [];
+    let flashcards: FlashcardData[] = [];
     
     // Extract flashcards from Gemini response
     try {

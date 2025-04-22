@@ -22,6 +22,21 @@ interface PlaylistCreatorProps {
   onClose: () => void;
 }
 
+// Definição da interface para a playlist
+interface Playlist {
+  id?: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+}
+
+// Definição da interface para os itens da playlist
+interface PlaylistItem {
+  playlist_id: string;
+  flashcard_id: number;
+  position: number;
+}
+
 const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
   const { toast } = useToast();
   const [name, setName] = useState("");
@@ -97,31 +112,33 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       
       const userId = sessionData.session.user.id;
       
-      // Create playlist
-      const { data: playlist, error: playlistError } = await supabase
+      // Criar playlist
+      const newPlaylist: Playlist = {
+        user_id: userId,
+        name,
+        description: description || null
+      };
+      
+      const { data: playlistData, error: playlistError } = await supabase
         .from('flashcard_playlists')
-        .insert({
-          user_id: userId,
-          name,
-          description: description || null
-        })
+        .insert(newPlaylist as any)
         .select()
         .single();
         
-      if (playlistError) {
-        throw playlistError;
+      if (playlistError || !playlistData) {
+        throw playlistError || new Error("Não foi possível criar a playlist");
       }
       
-      // Add flashcards to playlist
-      const playlistItems = selectedCards.map((card, index) => ({
-        playlist_id: playlist.id,
+      // Adicionar flashcards à playlist
+      const playlistItems: PlaylistItem[] = selectedCards.map((card, index) => ({
+        playlist_id: playlistData.id,
         flashcard_id: card.id,
         position: index
       }));
       
       const { error: itemsError } = await supabase
         .from('playlist_flashcards')
-        .insert(playlistItems);
+        .insert(playlistItems as any);
         
       if (itemsError) {
         throw itemsError;
