@@ -8,6 +8,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const PRICE_IDS = {
+  estudante: {
+    amount: 1199,
+    name: "Plano Estudante"
+  },
+  platina: {
+    amount: 1999,
+    name: "Plano Platina"
+  },
+  magistral: {
+    amount: 2999,
+    name: "Plano Magistral"
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -26,6 +41,10 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData.user) throw new Error('Usuário não encontrado');
+
+    const { priceId } = await req.json();
+    const planDetails = PRICE_IDS[priceId as keyof typeof PRICE_IDS];
+    if (!planDetails) throw new Error('Plano inválido');
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
       apiVersion: '2023-10-16',
@@ -49,10 +68,10 @@ serve(async (req) => {
           price_data: {
             currency: 'brl',
             product_data: {
-              name: 'Assinatura Premium',
-              description: 'Acesso completo a todos os recursos',
+              name: planDetails.name,
+              description: `Acesso completo ao ${planDetails.name}`,
             },
-            unit_amount: 2990, // R$ 29,90
+            unit_amount: planDetails.amount,
             recurring: {
               interval: 'month',
             },
