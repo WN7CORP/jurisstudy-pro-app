@@ -8,6 +8,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Explicit price ID to subscription tier mapping
+const PRICE_ID_TO_TIER = {
+  "price_1RGbTPIIaptXZgSJW8GstpNw": "magistral",
+  "price_1RGbSVIIaptXZgSJctc9sYiR": "platina",
+  "price_1RGbRPIIaptXZgSJLTf0L24w": "estudante"
+};
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
@@ -19,7 +26,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log("Verificando status da assinatura...");
+    logStep("Verificando status da assinatura...");
     
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -81,13 +88,8 @@ serve(async (req) => {
     if (isSubscribed && subscriptions.data[0].items.data[0].price) {
       const priceId = subscriptions.data[0].items.data[0].price.id;
       
-      if (priceId === "price_1RGbRPIIaptXZgSJLTf0L24w") {
-        subscriptionTier = "estudante";
-      } else if (priceId === "price_1RGbSVIIaptXZgSJctc9sYiR") {
-        subscriptionTier = "platina";
-      } else if (priceId === "price_1RGbTPIIaptXZgSJW8GstpNw") {
-        subscriptionTier = "magistral";
-      }
+      // Use explicit mapping for subscription tiers
+      subscriptionTier = PRICE_ID_TO_TIER[priceId] || null;
       
       logStep("Assinatura ativa encontrada:", { tier: subscriptionTier, endDate: subscriptionEnd });
     } else {
@@ -112,6 +114,7 @@ serve(async (req) => {
       subscription_end: subscriptionEnd,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
     });
   } catch (error) {
     console.error("Erro:", error);
@@ -121,3 +124,4 @@ serve(async (req) => {
     });
   }
 });
+
