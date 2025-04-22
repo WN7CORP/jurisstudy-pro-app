@@ -1,3 +1,4 @@
+
 [functions.cakto-webhook]
 verify_jwt = false
 
@@ -9,3 +10,6 @@ verify_jwt = true
 
 [functions.kiwify-webhook]
 verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = true
