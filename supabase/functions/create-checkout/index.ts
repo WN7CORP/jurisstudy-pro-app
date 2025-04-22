@@ -8,31 +8,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-/**
- * Tabela de Funções - create-checkout
- * -------------------------------------------------------------------------------------------------
- * | Função                  | Descrição                                                           |
- * |-------------------------|---------------------------------------------------------------------|
- * | serve                   | Função principal que processa as requisições HTTP e cria uma sessão |
- * |                         | de checkout no Stripe para iniciar o processo de assinatura.        |
- * -------------------------------------------------------------------------------------------------
- */
-
-// IDs dos planos no Stripe (estes são exemplos, você deve substituir pelos seus IDs reais)
+// Mapeamento dos IDs de preço do Stripe
 const PRICE_IDS = {
-  estudante: "price_estudante", // Substitua pelo ID real do preço do plano Estudante
-  platina: "price_platina",     // Substitua pelo ID real do preço do plano Platina
-  magistral: "price_magistral"  // Substitua pelo ID real do preço do plano Magistral
+  estudante: "prod_SAxMvIaGX6rdjv",
+  platina: "prod_SAxNWVgnpM84jW",
+  magistral: "prod_SAxO5nw5rdgEaq"
 };
 
-// Função auxiliar para logging
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -40,13 +28,11 @@ serve(async (req) => {
   try {
     logStep("Função create-checkout iniciada");
     
-    // Create Supabase client with anon key for authentication
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Verificar autenticação do usuário
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       logStep("Erro: Header de autorização não encontrado");
@@ -64,19 +50,17 @@ serve(async (req) => {
     const user = userData.user;
     logStep("Usuário autenticado:", { email: user.email });
 
-    // Obter o ID do plano do body da requisição
     const body = await req.json();
-    const priceId = body.priceId;
+    const planId = body.priceId;
     
-    if (!priceId || !PRICE_IDS[priceId as keyof typeof PRICE_IDS]) {
-      logStep("Erro: ID de plano inválido:", { priceId });
+    if (!planId || !PRICE_IDs[planId as keyof typeof PRICE_IDs]) {
+      logStep("Erro: ID de plano inválido:", { planId });
       throw new Error('Plano inválido');
     }
     
-    const stripeProductId = PRICE_IDS[priceId as keyof typeof PRICE_IDS];
-    logStep("Plano selecionado:", { priceId, stripeProductId });
+    const stripeProductId = PRICE_IDs[planId as keyof typeof PRICE_IDs];
+    logStep("Plano selecionado:", { planId, stripeProductId });
 
-    // Inicializar o Stripe
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
       logStep("Erro: Chave do Stripe não configurada");
@@ -88,13 +72,11 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    // Verificar se o cliente já existe no Stripe
     logStep("Buscando cliente no Stripe...");
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined = customers.data[0]?.id;
     logStep("Cliente existente:", { exists: !!customerId });
 
-    // Se o cliente não existir, criar um novo
     if (!customerId) {
       logStep("Criando novo cliente...");
       const customer = await stripe.customers.create({
@@ -105,7 +87,6 @@ serve(async (req) => {
       logStep("Novo cliente criado:", { customerId });
     }
 
-    // Criar a sessão de checkout
     const origin = req.headers.get('origin') || 'http://localhost:3000';
     logStep("Criando sessão de checkout...", { 
       customer: customerId,
@@ -130,7 +111,6 @@ serve(async (req) => {
       url: session.url 
     });
 
-    // Retornar a URL da sessão de checkout
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
