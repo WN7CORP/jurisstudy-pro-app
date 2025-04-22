@@ -23,12 +23,29 @@ const PRICE_IDs = {
  * | logStep                | Registra eventos de log com detalhes opcionais para depuração.        |
  * | serve                  | Função principal que processa requisições HTTP e inicia um checkout   |
  * |                        | do Stripe para um usuário autenticado.                                |
+ * | handlePriceMapping     | Gerencia o mapeamento entre IDs de plano e IDs de preço do Stripe.    |
  * --------------------------------------------------------------------------------------------------
  */
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
+/**
+ * Função para obter o ID de preço do Stripe baseado no plano selecionado
+ */
+const handlePriceMapping = (planId: string): string => {
+  if (planId in PRICE_IDs) {
+    return PRICE_IDs[planId as keyof typeof PRICE_IDs];
+  }
+  
+  // Verifica se o planId é um priceId direto do Stripe
+  if (planId.startsWith('price_')) {
+    return planId;
+  }
+  
+  throw new Error(`Plano inválido: ${planId}`);
 };
 
 serve(async (req) => {
@@ -64,12 +81,19 @@ serve(async (req) => {
     const body = await req.json();
     const planId = body.priceId;
     
-    if (!planId || !PRICE_IDs[planId as keyof typeof PRICE_IDs]) {
+    if (!planId) {
+      logStep("Erro: ID de plano não fornecido");
+      throw new Error('ID de plano não fornecido');
+    }
+    
+    let stripePriceId;
+    try {
+      stripePriceId = handlePriceMapping(planId);
+    } catch (error) {
       logStep("Erro: ID de plano inválido:", { planId });
       throw new Error('Plano inválido');
     }
     
-    const stripePriceId = PRICE_IDs[planId as keyof typeof PRICE_IDs];
     logStep("Plano selecionado:", { planId, stripePriceId });
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');

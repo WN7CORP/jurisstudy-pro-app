@@ -51,6 +51,7 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
       
       console.log("Iniciando checkout para o plano:", plan.id);
       
+      // Envia o ID do plano para a função create-checkout
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId: plan.id }
       });
