@@ -18,7 +18,7 @@ import {
   Newspaper,
   PenTool,
   FileText as FileIcon,
-  Computer,  // Updated from Desktop
+  Computer,  // Replace Desktop with Computer
   Bot
 } from "lucide-react";
 
