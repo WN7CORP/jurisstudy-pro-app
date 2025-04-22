@@ -10,10 +10,12 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Feature {
   id: string;
   title: string;
+  description: string;
   icon: React.ReactNode;
   href: string;
   isFavorite?: boolean;
@@ -39,10 +41,18 @@ const FeaturesCarousel: React.FC<FeaturesCarouselProps> = ({
       <CarouselContent>
         {features.map((feature) => (
           <CarouselItem key={feature.id} className="md:basis-1/4 lg:basis-1/5">
-            <Card className="p-4 relative group">
-              <div className="flex flex-col items-center">
-                <div className="mb-3">{feature.icon}</div>
-                <h3 className="text-sm font-medium text-center">{feature.title}</h3>
+            <Card className="p-4 relative group bg-netflix-darkGray border-netflix-darkGray hover:shadow-md transition-shadow h-full">
+              <div className="flex flex-col items-center h-full">
+                <div className="w-10 h-10 rounded-full bg-netflix-red/10 flex items-center justify-center mb-3">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-medium text-netflix-offWhite text-center mb-2">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground text-center mb-4 flex-grow">
+                  {feature.description}
+                </p>
+                <Button variant="link" className="text-netflix-red hover:text-netflix-red/80" asChild>
+                  <Link to={feature.href}>Acessar</Link>
+                </Button>
               </div>
               {onToggleFavorite && (
                 <Button

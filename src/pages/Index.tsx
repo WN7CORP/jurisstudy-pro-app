@@ -1,44 +1,8 @@
-
 import React from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Layout from "@/components/layout/Layout";
 import { Book, BookOpen, FileText, FlaskConical, Gavel, Video, Bot, BrainCircuit, Scale } from "lucide-react";
-
-interface FeatureCardProps {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  href: string;
-  color?: string;
-}
-
-const FeatureCard: React.FC<FeatureCardProps> = ({ 
-  title, 
-  description, 
-  icon, 
-  href,
-  color = "bg-netflix-darkGray"
-}) => {
-  return (
-    <Card className={`${color} border-netflix-darkGray hover:shadow-md transition-shadow duration-300 h-full group`}>
-      <CardHeader className="pb-2">
-        <div className="w-10 h-10 rounded-full bg-netflix-red/10 flex items-center justify-center mb-2">
-          {icon}
-        </div>
-        <CardTitle className="text-lg text-netflix-offWhite">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <CardDescription className="text-muted-foreground text-sm">{description}</CardDescription>
-      </CardContent>
-      <CardFooter>
-        <Button variant="link" className="px-0 text-netflix-red group-hover:text-netflix-red/80" asChild>
-          <a href={href}>Acessar</a>
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
+import { Button } from "@/components/ui/button";
+import FeaturesCarousel from "@/components/home/FeaturesCarousel";
 
 const RecentActivity = () => {
   return (
@@ -113,24 +77,28 @@ const StudyProgress = () => {
 const Index = () => {
   const mainFeatures = [
     {
+      id: "1",
       title: "Vídeo-aulas",
       description: "Aprenda com professores especialistas em cada área do Direito.",
       icon: <Video className="h-6 w-6 text-netflix-red" />,
       href: "/video-aulas"
     },
     {
+      id: "2",
       title: "Biblioteca Jurídica",
       description: "Acesse livros, artigos e materiais exclusivos para o seu estudo.",
       icon: <Book className="h-6 w-6 text-netflix-red" />,
       href: "/biblioteca"
     },
     {
+      id: "3",
       title: "Flashcards",
       description: "Memorize conceitos importantes de forma rápida e eficiente.",
       icon: <FlaskConical className="h-6 w-6 text-netflix-red" />,
       href: "/flashcards"
     },
     {
+      id: "4",
       title: "Resumos",
       description: "Conteúdo essencial de cada disciplina com os principais pontos.",
       icon: <FileText className="h-6 w-6 text-netflix-red" />,
@@ -140,24 +108,28 @@ const Index = () => {
 
   const practiceFeatures = [
     {
+      id: "5",
       title: "Simulados",
       description: "Teste seus conhecimentos com questões de provas anteriores.",
       icon: <BrainCircuit className="h-6 w-6 text-netflix-red" />,
       href: "/simulados"
     },
     {
+      id: "6",
       title: "Vade-Mecum",
       description: "Consulte a legislação atualizada e comentada por especialistas.",
       icon: <BookOpen className="h-6 w-6 text-netflix-red" />,
       href: "/vade-mecum"
     },
     {
+      id: "7",
       title: "Jurisprudência",
       description: "Acesse decisões importantes dos principais tribunais.",
       icon: <Gavel className="h-6 w-6 text-netflix-red" />,
       href: "/jurisprudencia"
     },
     {
+      id: "8",
       title: "Assistente",
       description: "Tire dúvidas e receba auxílio personalizado da nossa IA.",
       icon: <Bot className="h-6 w-6 text-netflix-red" />,
@@ -194,33 +166,13 @@ const Index = () => {
             {/* Section: Estudo */}
             <div className="md:col-span-4 col-span-full">
               <h2 className="text-xl font-semibold text-netflix-offWhite mb-4">Estudo</h2>
-              <div className="grid md:grid-cols-4 grid-cols-1 sm:grid-cols-2 gap-4">
-                {mainFeatures.map((feature) => (
-                  <FeatureCard
-                    key={feature.title}
-                    title={feature.title}
-                    description={feature.description}
-                    icon={feature.icon}
-                    href={feature.href}
-                  />
-                ))}
-              </div>
+              <FeaturesCarousel features={mainFeatures} />
             </div>
             
             {/* Section: Prática e Treinamento */}
             <div className="md:col-span-4 col-span-full">
               <h2 className="text-xl font-semibold text-netflix-offWhite mb-4">Prática e Treinamento</h2>
-              <div className="grid md:grid-cols-4 grid-cols-1 sm:grid-cols-2 gap-4">
-                {practiceFeatures.map((feature) => (
-                  <FeatureCard
-                    key={feature.title}
-                    title={feature.title}
-                    description={feature.description}
-                    icon={feature.icon}
-                    href={feature.href}
-                  />
-                ))}
-              </div>
+              <FeaturesCarousel features={practiceFeatures} />
             </div>
           </div>
           
