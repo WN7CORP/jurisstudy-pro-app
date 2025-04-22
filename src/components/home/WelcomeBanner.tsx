@@ -1,23 +1,44 @@
 
-import React from "react";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const WelcomeBanner = () => {
+  const { data: subscriptionData } = useQuery({
+    queryKey: ['subscription-status'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      return data;
+    }
+  });
+
   return (
-    <div className="md:col-span-4 col-span-full bg-gradient-to-r from-netflix-black to-netflix-red/50 rounded-lg relative overflow-hidden h-48">
-      <div className="absolute inset-0 bg-[url('/law-pattern.png')] opacity-10"></div>
-      <div className="p-6 flex flex-col h-full justify-center relative z-10">
-        <h2 className="text-2xl font-bold text-white mb-2">
-          Bem-vindo ao JurisStudy Pro
-        </h2>
-        <p className="text-netflix-offWhite max-w-lg mb-4">
-          O app jurídico que vai te levar da dúvida à aprovação. Domine a lei. Vença o edital.
-        </p>
-        <Button className="bg-netflix-red hover:bg-netflix-red/90 text-white w-fit">
-          Comece agora
-        </Button>
-      </div>
-    </div>
+    <Card className="col-span-full">
+      <CardContent className="p-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold">Bem-vindo ao JurisStudyPro</h2>
+            <p className="text-muted-foreground mt-1">
+              {subscriptionData?.subscribed 
+                ? `Seu plano atual: ${subscriptionData.subscription_tier}`
+                : 'Comece sua jornada de estudos jurídicos'}
+            </p>
+          </div>
+
+          {!subscriptionData?.subscribed && (
+            <Button asChild>
+              <Link to="/assinatura">
+                Assinar Agora
+              </Link>
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
