@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search, User, Crown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,8 +8,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -23,26 +25,6 @@ const Navbar = () => {
         </h1>
       </div>
       
-      {/* Menu do perfil */}
-      <div className="md:hidden">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg" alt="Profile" />
-                <AvatarFallback>U</AvatarFallback>
-              </Avatar>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to="/profile">Meu Perfil</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>Sair</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
       {/* Barra de pesquisa */}
       <div className="hidden md:flex relative max-w-md w-full">
         <div className="relative w-full">
@@ -57,14 +39,61 @@ const Navbar = () => {
         </div>
       </div>
       
-      {/* Ícones de ação */}
+      {/* Ícones de ação e botão de planos - Desktop */}
       <div className="hidden md:flex items-center space-x-4">
+        <Link to="/assinatura">
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
+            <Crown className="h-4 w-4 mr-2" />
+            Ver Planos
+          </Button>
+        </Link>
         <button className="text-foreground hover:text-primary transition-colors">
           <Bell size={20} />
         </button>
-        <Link to="/profile" className="text-foreground hover:text-primary transition-colors">
-          <User size={20} />
-        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="/placeholder.svg" alt="Profile" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem asChild>
+              <Link to="/profile">Meu Perfil</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/assinatura">Minha Assinatura</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Sair</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Menu do perfil - Mobile */}
+      <div className="md:hidden">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="/placeholder.svg" alt="Profile" />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link to="/profile">Meu Perfil</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/assinatura">Ver Planos</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Sair</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

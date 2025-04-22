@@ -1,12 +1,10 @@
 import React from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
 import FeaturesCarousel from "@/components/home/FeaturesCarousel";
 import RecentActivity from "@/components/home/RecentActivity";
 import StudyProgress from "@/components/home/StudyProgress";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
-import { Link } from "react-router-dom";
 import { 
   quickStudyFeatures, 
   practiceFeatures, 
@@ -29,7 +27,7 @@ const Index = () => {
           <div className="xl:col-span-4 col-span-full grid md:grid-cols-4 grid-cols-1 sm:grid-cols-2 gap-6">
             <WelcomeBanner />
             
-            {/* Nova seção de CTA para assinatura */}
+            {/* Seções existentes */}
             <div className="md:col-span-4 col-span-full bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 rounded-lg border border-primary/20 shadow-lg">
               <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="space-y-2 text-center md:text-left">
@@ -47,7 +45,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Seção: Estudo Rápido */}
             <div className="md:col-span-4 col-span-full">
               <FeaturesCarousel 
                 features={quickStudyFeatures} 
@@ -55,7 +52,6 @@ const Index = () => {
               />
             </div>
             
-            {/* Seção: Prática e Treinamento */}
             <div className="md:col-span-4 col-span-full">
               <FeaturesCarousel 
                 features={practiceFeatures} 
@@ -63,7 +59,6 @@ const Index = () => {
               />
             </div>
 
-            {/* Seção: Ferramentas Jurídicas */}
             <div className="md:col-span-4 col-span-full">
               <FeaturesCarousel 
                 features={legalToolsFeatures} 
@@ -71,7 +66,6 @@ const Index = () => {
               />
             </div>
 
-            {/* Seção: Extra e Inteligência */}
             <div className="md:col-span-4 col-span-full">
               <FeaturesCarousel 
                 features={extraFeatures} 
