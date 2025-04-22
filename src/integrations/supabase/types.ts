@@ -1192,6 +1192,115 @@ export type Database = {
         }
         Relationships: []
       }
+      video_aulas_categorias: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      video_aulas_playlists: {
+        Row: {
+          categoria_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          thumbnail: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          thumbnail?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          thumbnail?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_aulas_playlists_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "video_aulas_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_aulas_videos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          duracao: string | null
+          id: string
+          ordem: number | null
+          playlist_id: string
+          thumbnail: string | null
+          titulo: string
+          updated_at: string
+          url_video: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          duracao?: string | null
+          id?: string
+          ordem?: number | null
+          playlist_id: string
+          thumbnail?: string | null
+          titulo: string
+          updated_at?: string
+          url_video: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          duracao?: string | null
+          id?: string
+          ordem?: number | null
+          playlist_id?: string
+          thumbnail?: string | null
+          titulo?: string
+          updated_at?: string
+          url_video?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_aulas_videos_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "video_aulas_playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           area: string | null
