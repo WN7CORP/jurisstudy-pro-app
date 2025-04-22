@@ -36,6 +36,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cakto_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          payment_method: string | null
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          status: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       configuracoes_usuarios: {
         Row: {
           backup_pdf_url: string | null
@@ -969,7 +1002,9 @@ export type Database = {
       }
       subscribers: {
         Row: {
+          cakto_customer_id: string | null
           created_at: string
+          current_period_end: string | null
           email: string
           id: string
           stripe_customer_id: string | null
@@ -980,7 +1015,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          cakto_customer_id?: string | null
           created_at?: string
+          current_period_end?: string | null
           email: string
           id?: string
           stripe_customer_id?: string | null
@@ -991,7 +1028,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          cakto_customer_id?: string | null
           created_at?: string
+          current_period_end?: string | null
           email?: string
           id?: string
           stripe_customer_id?: string | null

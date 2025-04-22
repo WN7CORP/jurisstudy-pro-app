@@ -13,11 +13,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
  * -------------------------------------------------------------------------------------------------
  * | Função                   | Descrição                                                          |
  * |--------------------------|-------------------------------------------------------------------|
- * | SubscriptionCard         | Renderiza um card de plano de assinatura com informações sobre     |
- * | (Componente)             | preço, recursos incluídos e botão para assinar.                    |
+ * | SubscriptionCard         | Renderiza um card de plano de assinatura com informações sobre    |
+ * | (Componente)             | preço, recursos incluídos e botão para assinar.                   |
  * |--------------------------|-------------------------------------------------------------------|
- * | handleSubscribe          | Processa a solicitação de assinatura, chamando a função do Stripe  |
- * | (Função)                 | para criar um checkout e redirecionando o usuário.                 |
+ * | handleSubscribe          | Processa a solicitação de assinatura, chamando a função da Cakto  |
+ * | (Função)                 | para criar um checkout e redirecionando o usuário.                |
  * -------------------------------------------------------------------------------------------------
  */
 
@@ -45,15 +45,14 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
           title: "Autenticação necessária",
           description: "Você precisa estar logado para assinar um plano.",
         });
-        setLoading(false);
         return;
       }
       
-      console.log("Iniciando checkout para o plano:", plan.id);
+      console.log("Iniciando checkout Cakto para o plano:", plan.id);
       
-      // Envia o ID do plano para a função create-checkout
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId: plan.id }
+      // Envia o ID do plano para a função create-cakto-checkout
+      const { data, error } = await supabase.functions.invoke('create-cakto-checkout', {
+        body: { planId: plan.id }
       });
       
       if (error) {
@@ -81,6 +80,7 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
       });
       
       setError(`Não foi possível iniciar o processo de assinatura. ${errorMessage}`);
+    } finally {
       setLoading(false);
     }
   };
