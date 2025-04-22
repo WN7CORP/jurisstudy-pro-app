@@ -46,6 +46,8 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
         return;
       }
       
+      console.log("Iniciando checkout para o plano:", plan.id);
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId: plan.id }
       });
@@ -56,12 +58,14 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
       }
       
       if (data?.url) {
+        console.log("URL de checkout recebida, redirecionando para:", data.url);
         window.location.href = data.url;
       } else {
+        console.error('URL de checkout não recebida:', data);
         throw new Error('URL de checkout não recebida');
       }
     } catch (error) {
-      console.error('Erro completo:', error);
+      console.error('Erro completo ao assinar:', error);
       toast({
         variant: "destructive",
         title: "Erro",
@@ -72,9 +76,9 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
   };
 
   return (
-    <Card className={`w-full max-w-sm ${isPopular ? 'border-primary shadow-lg scale-105' : ''}`}>
+    <Card className={`w-full h-full ${isPopular ? 'border-primary shadow-lg' : ''}`}>
       {isPopular && (
-        <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-4 py-1 bg-primary text-primary-foreground rounded-full text-sm">
+        <div className="absolute -top-4 left-0 right-0 mx-auto w-fit px-4 py-1 bg-primary text-primary-foreground rounded-full text-sm font-medium">
           Mais Popular
         </div>
       )}
@@ -89,11 +93,11 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
           {plan.features.map((feature, index) => (
             <li key={index} className="flex items-center gap-2">
               {feature.included ? (
-                <Check className="h-4 w-4 text-green-500" />
+                <Check className="h-4 w-4 text-green-500 shrink-0" />
               ) : (
-                <X className="h-4 w-4 text-red-500" />
+                <X className="h-4 w-4 text-red-500 shrink-0" />
               )}
-              {feature.name}
+              <span>{feature.name}</span>
             </li>
           ))}
         </ul>

@@ -30,7 +30,9 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase clients - um para auth e outro com service role para operações seguras
+    console.log("Função create-checkout iniciada");
+    
+    // Create Supabase client with anon key for authentication
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -38,36 +40,55 @@ serve(async (req) => {
 
     // Verificar autenticação do usuário
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('Não autorizado');
+    if (!authHeader) {
+      console.log("Erro: Header de autorização não encontrado");
+      throw new Error('Não autorizado');
+    }
     
     const token = authHeader.replace('Bearer ', '');
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError || !userData.user) throw new Error('Usuário não encontrado');
+    
+    if (userError || !userData.user) {
+      console.log("Erro ao autenticar usuário:", userError);
+      throw new Error('Usuário não encontrado');
+    }
     
     const user = userData.user;
     console.log("Usuário autenticado:", user.email);
 
     // Obter o ID do plano do body da requisição
-    const { priceId } = await req.json();
+    const body = await req.json();
+    const priceId = body.priceId;
+    
+    if (!priceId || !PRICE_IDS[priceId as keyof typeof PRICE_IDS]) {
+      console.log("Erro: ID de plano inválido:", priceId);
+      throw new Error('Plano inválido');
+    }
+    
     const planDetails = PRICE_IDS[priceId as keyof typeof PRICE_IDS];
-    if (!planDetails) throw new Error('Plano inválido');
     console.log("Plano selecionado:", priceId, planDetails);
 
     // Inicializar o Stripe
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) throw new Error('Chave do Stripe não configurada');
+    if (!stripeKey) {
+      console.log("Erro: Chave do Stripe não configurada");
+      throw new Error('Chave do Stripe não configurada');
+    }
     
+    console.log("Inicializando Stripe...");
     const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     });
 
     // Verificar se o cliente já existe no Stripe
+    console.log("Buscando cliente no Stripe...");
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined = customers.data[0]?.id;
     console.log("Cliente existente:", customerId ? "Sim" : "Não");
 
     // Se o cliente não existir, criar um novo
     if (!customerId) {
+      console.log("Criando novo cliente...");
       const customer = await stripe.customers.create({
         email: user.email,
         name: user.user_metadata?.full_name || user.email,
@@ -78,6 +99,7 @@ serve(async (req) => {
 
     // Criar a sessão de checkout
     const origin = req.headers.get('origin') || 'http://localhost:3000';
+    console.log("Criando sessão de checkout...");
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
