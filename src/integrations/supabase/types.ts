@@ -156,6 +156,7 @@ export type Database = {
       }
       cursos_narrados: {
         Row: {
+          area: string | null
           capa: string | null
           created_at: string
           download: string | null
@@ -166,6 +167,7 @@ export type Database = {
           sobre: string | null
         }
         Insert: {
+          area?: string | null
           capa?: string | null
           created_at?: string
           download?: string | null
@@ -176,6 +178,7 @@ export type Database = {
           sobre?: string | null
         }
         Update: {
+          area?: string | null
           capa?: string | null
           created_at?: string
           download?: string | null
@@ -184,6 +187,39 @@ export type Database = {
           materia?: string | null
           sequencia?: string | null
           sobre?: string | null
+        }
+        Relationships: []
+      }
+      estatisticas_usuario: {
+        Row: {
+          created_at: string | null
+          id: string
+          total_cursos_concluidos: number | null
+          total_materiais_baixados: number | null
+          total_tempo_estudo: unknown | null
+          ultima_atividade: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          total_cursos_concluidos?: number | null
+          total_materiais_baixados?: number | null
+          total_tempo_estudo?: unknown | null
+          ultima_atividade?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          total_cursos_concluidos?: number | null
+          total_materiais_baixados?: number | null
+          total_tempo_estudo?: unknown | null
+          ultima_atividade?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -685,6 +721,50 @@ export type Database = {
           user_type?: string | null
         }
         Relationships: []
+      }
+      progresso_cursos: {
+        Row: {
+          concluido: boolean | null
+          created_at: string | null
+          curso_id: number
+          id: string
+          iniciado: boolean | null
+          progresso: number | null
+          ultima_visualizacao: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          concluido?: boolean | null
+          created_at?: string | null
+          curso_id: number
+          id?: string
+          iniciado?: boolean | null
+          progresso?: number | null
+          ultima_visualizacao?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          concluido?: boolean | null
+          created_at?: string | null
+          curso_id?: number
+          id?: string
+          iniciado?: boolean | null
+          progresso?: number | null
+          ultima_visualizacao?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_cursos_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_narrados"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       progresso_jogos: {
         Row: {

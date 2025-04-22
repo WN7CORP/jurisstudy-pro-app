@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { CursoCard } from "@/components/cursos/CursoCard";
@@ -8,10 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { CursoNarrado, CursosAgrupados } from "@/types/cursos";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Cursos: React.FC = () => {
   const [selectedCurso, setSelectedCurso] = useState<CursoNarrado | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const { data: cursos, isLoading } = useQuery({
     queryKey: ['cursos-narrados'],
@@ -51,6 +53,7 @@ const Cursos: React.FC = () => {
       <CursoViewer
         link={selectedCurso.link}
         onBack={() => setSelectedCurso(null)}
+        cursoId={selectedCurso.id}
       />
     );
   }
@@ -60,14 +63,14 @@ const Cursos: React.FC = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-2">Cursos</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">Cursos</h1>
             <p className="text-muted-foreground">
               Aprendizado estruturado para sua jornada jurídica
             </p>
           </div>
 
           {isLoading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map((item) => (
                 <div key={item} className="flex flex-col space-y-3">
                   <Skeleton className="h-[200px] w-full rounded-xl" />
@@ -82,11 +85,12 @@ const Cursos: React.FC = () => {
             <div className="space-y-8">
               {Object.entries(cursosAgrupados).map(([area, cursosDaArea]) => (
                 <div key={area} className="space-y-4">
-                  <h2 className="text-2xl font-bold">Área {area}</h2>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <h2 className="text-xl md:text-2xl font-bold">Área {area}</h2>
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {cursosDaArea.map((curso) => (
                       <CursoCard
                         key={curso.id}
+                        id={curso.id}
                         materia={curso.materia || ''}
                         sobre={curso.sobre}
                         capa={curso.capa}
