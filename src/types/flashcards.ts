@@ -52,4 +52,5 @@ export interface PlaylistItem {
  * | handleSave | Salva uma nova playlist no banco de dados |
  * | toggleFlashcard | Marca/desmarca um flashcard para a playlist |
  * | getUniqueAreas | Obtém áreas únicas para os filtros |
+ * | handleStudySet | Inicia o estudo de um conjunto de flashcards |
  */

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,9 +73,11 @@ interface Playlist {
  * | fetchPlaylists        | Obtém as playlists criadas pelo usuário              |
  * | handleCreateNewSet    | Cria um novo conjunto de flashcards                  |
  * | handleFileUpload      | Processa o upload de materiais para criar flashcards |
+ * | handleStudySet        | Inicia o estudo de um conjunto de flashcards         |
  */
 const Flashcards: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [flashcards, setFlashcards] = useState<FlashCard[]>([]);
@@ -312,6 +315,31 @@ const Flashcards: React.FC = () => {
     });
   };
 
+  // Função para iniciar estudo de um conjunto de flashcards
+  const handleStudySet = (area: string, tema: string) => {
+    // Filtrar os flashcards pelo área e tema selecionados
+    const cardsToStudy = flashcards.filter(
+      card => card.area === area && card.tema === tema
+    );
+    
+    if (cardsToStudy.length === 0) {
+      toast({
+        title: "Sem flashcards",
+        description: "Não há flashcards disponíveis para este conjunto.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Navegar para a página de estudo com os flashcards selecionados
+    navigate('/estudo-flashcards', { 
+      state: { 
+        cards: cardsToStudy,
+        setInfo: { area, tema }
+      } 
+    });
+  };
+
   // Tabela para comparar o uso das funções dos flashcards
   const renderFlashcardFunctionsTable = () => {
     return (
@@ -506,7 +534,12 @@ const Flashcards: React.FC = () => {
                         <Award className="h-4 w-4 mr-1 text-netflix-red" />
                         <span className="text-xs">{set.progress}% dominado</span>
                       </div>
-                      <Button variant="ghost" size="sm" className="p-0 h-auto">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="p-0 h-auto"
+                        onClick={() => handleStudySet(set.area, set.tema)}
+                      >
                         <ChevronRight className="h-5 w-5" />
                       </Button>
                     </div>
@@ -537,7 +570,11 @@ const Flashcards: React.FC = () => {
                             ></div>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleStudySet(set.area, set.tema)}
+                        >
                           Estudar
                         </Button>
                       </div>

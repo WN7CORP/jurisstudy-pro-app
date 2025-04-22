@@ -12,6 +12,16 @@ interface FlashcardStudyViewProps {
   onComplete: () => void;
 }
 
+/**
+ * Componente para estudo de flashcards
+ * 
+ * | Função | Descrição |
+ * |--------|-----------|
+ * | handleFlip | Controla a virada do flashcard |
+ * | handleNext | Avança para o próximo flashcard |
+ * | handlePrevious | Retorna para o flashcard anterior |
+ * | updateProgress | Atualiza o progresso do usuário em um flashcard |
+ */
 const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComplete }) => {
   const { toast } = useToast();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -59,7 +69,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
         .eq('flashcard_id', currentCard.id)
         .maybeSingle();
       
-      if (fetchError) {
+      if (fetchError && fetchError.code !== 'PGRST116') {
         console.error("Erro ao buscar progresso:", fetchError);
         throw fetchError;
       }
