@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
  * |------------------------|-----------------------------------------------------------------------|
  * | SubscriptionCard       | Componente que renderiza um cartão de plano de assinatura com seus    |
  * |                        | detalhes e um botão para iniciar o processo de checkout.              |
- * | handleSubscribe        | Gerencia o processo de checkout com Stripe, tratando erros e sucesso. |
+ * | handleSubscribe        | Gerencia o processo de checkout com Cakto, tratando erros e sucesso.  |
  * | handleSubscribeError   | Processa erros durante o checkout e exibe mensagens apropriadas.      |
  * --------------------------------------------------------------------------------------------------
  */
@@ -59,20 +59,20 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
       
       toast({
         title: "Processando",
-        description: "Inicializando o checkout do Stripe...",
+        description: "Inicializando o checkout do Cakto...",
       });
       
-      console.log(`Iniciando checkout para o plano: ${plan.name} (ID: ${plan.priceId})`);
+      console.log(`Iniciando checkout para o plano: ${plan.name} (ID: ${plan.id})`);
       
-      const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
-        body: { priceId: plan.priceId },
+      const { data, error } = await supabase.functions.invoke('create-cakto-checkout', {
+        body: { planId: plan.id },
       });
 
-      console.log('Resposta da função create-stripe-checkout:', { data, error });
+      console.log('Resposta da função create-cakto-checkout:', { data, error });
 
       if (error) {
-        console.error('Erro na função create-stripe-checkout:', error);
-        throw new Error(`Erro na função create-stripe-checkout: ${error.message}`);
+        console.error('Erro na função create-cakto-checkout:', error);
+        throw new Error(`Erro na função create-cakto-checkout: ${error.message}`);
       }
       
       if (!data) {
@@ -87,7 +87,7 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
         throw new Error('URL de checkout não encontrada na resposta');
       }
 
-      console.log('Redirecionando para URL do Stripe:', data.url);
+      console.log('Redirecionando para URL do Cakto:', data.url);
       
       // Adicionar um pequeno delay antes do redirecionamento
       setTimeout(() => {
