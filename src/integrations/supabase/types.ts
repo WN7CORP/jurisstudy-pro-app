@@ -495,6 +495,42 @@ export type Database = {
         }
         Relationships: []
       }
+      kiwify_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          payment_method: string | null
+          product_id: string | null
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          product_id?: string | null
+          status: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          payment_method?: string | null
+          product_id?: string | null
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       legislacao: {
         Row: {
           artigo: string | null
@@ -1007,6 +1043,8 @@ export type Database = {
           current_period_end: string | null
           email: string
           id: string
+          kiwify_customer_id: string | null
+          kiwify_subscription_id: string | null
           stripe_customer_id: string | null
           subscribed: boolean
           subscription_end: string | null
@@ -1020,6 +1058,8 @@ export type Database = {
           current_period_end?: string | null
           email: string
           id?: string
+          kiwify_customer_id?: string | null
+          kiwify_subscription_id?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null
@@ -1033,6 +1073,8 @@ export type Database = {
           current_period_end?: string | null
           email?: string
           id?: string
+          kiwify_customer_id?: string | null
+          kiwify_subscription_id?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
           subscription_end?: string | null

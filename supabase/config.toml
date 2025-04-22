@@ -4,3 +4,6 @@ verify_jwt = false
 
 [functions.create-cakto-checkout]
 verify_jwt = true
+
+[functions.kiwify-webhook]
+verify_jwt = false
