@@ -15,6 +15,17 @@ const PRICE_IDs = {
   magistral: "price_1RGbTPIIaptXZgSJW8GstpNw"
 };
 
+/**
+ * Tabela de Funções - create-checkout/index.ts
+ * --------------------------------------------------------------------------------------------------
+ * | Função                 | Descrição                                                             |
+ * |------------------------|-----------------------------------------------------------------------|
+ * | logStep                | Registra eventos de log com detalhes opcionais para depuração.        |
+ * | serve                  | Função principal que processa requisições HTTP e inicia um checkout   |
+ * |                        | do Stripe para um usuário autenticado.                                |
+ * --------------------------------------------------------------------------------------------------
+ */
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
