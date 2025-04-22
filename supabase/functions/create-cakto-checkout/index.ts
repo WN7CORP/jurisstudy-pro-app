@@ -40,14 +40,22 @@ serve(async (req) => {
     }
 
     const { planId } = await req.json();
+    console.log("[CREATE-CAKTO-CHECKOUT] PlanId recebido:", planId);
+    
     if (!planId || !CAKTO_PLAN_IDs[planId as keyof typeof CAKTO_PLAN_IDs]) {
       throw new Error('Plano inválido');
     }
 
     const caktoPlanId = CAKTO_PLAN_IDs[planId as keyof typeof CAKTO_PLAN_IDs];
+    console.log("[CREATE-CAKTO-CHECKOUT] ID do plano Cakto:", caktoPlanId);
     
     // Criar checkout na Cakto
     const caktoApiKey = Deno.env.get('CAKTO_API_KEY');
+    if (!caktoApiKey) {
+      throw new Error('Chave da API Cakto não configurada');
+    }
+    
+    console.log("[CREATE-CAKTO-CHECKOUT] Chamando API da Cakto");
     const response = await fetch('https://api.cakto.com.br/v1/checkout/create', {
       method: 'POST',
       headers: {
@@ -63,13 +71,16 @@ serve(async (req) => {
     });
 
     const checkoutData = await response.json();
+    console.log("[CREATE-CAKTO-CHECKOUT] Resposta da API:", checkoutData);
     
     if (!response.ok) {
+      console.error("[CREATE-CAKTO-CHECKOUT] Erro da API:", checkoutData);
       throw new Error(checkoutData.message || 'Erro ao criar checkout');
     }
 
     return new Response(JSON.stringify({ url: checkoutData.checkout_url }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
     });
   } catch (error) {
     console.error("[CREATE-CAKTO-CHECKOUT] Erro:", error);

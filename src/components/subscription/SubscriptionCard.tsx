@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
 import type { SubscriptionPlan } from './PlanFeatures';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 
 /**
  * Tabela de Funções - SubscriptionCard.tsx
@@ -25,7 +25,6 @@ interface SubscriptionCardProps {
 }
 
 export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 

@@ -15,6 +15,21 @@ serve(async (req) => {
   try {
     console.log("[CAKTO-WEBHOOK] Webhook recebido");
     
+    // Extrair a chave secreta do webhook da Cakto (se configurado)
+    const webhookSecret = Deno.env.get('CAKTO_WEBHOOK_SECRET');
+    const authHeader = req.headers.get('Authorization');
+    
+    // Se tiver uma chave secreta configurada, validar a requisição
+    if (webhookSecret) {
+      if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.replace('Bearer ', '') !== webhookSecret) {
+        console.error("[CAKTO-WEBHOOK] Autenticação inválida");
+        return new Response(JSON.stringify({ error: 'Autenticação inválida' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401,
+        });
+      }
+    }
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
