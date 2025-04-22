@@ -14,15 +14,29 @@ interface SubscriptionCardProps {
 
 export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleSubscribe = async () => {
     try {
+      setIsLoading(true);
+      
+      toast({
+        title: "Processando",
+        description: "Inicializando o checkout do Stripe...",
+      });
+      
       const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
         body: { priceId: plan.priceId },
       });
 
-      if (error) throw error;
-      if (!data?.url) throw new Error('URL de checkout não encontrada');
+      if (error) {
+        console.error('Erro na função create-stripe-checkout:', error);
+        throw new Error(`Erro na função create-stripe-checkout: ${error.message}`);
+      }
+      
+      if (!data?.url) {
+        throw new Error('URL de checkout não encontrada na resposta');
+      }
 
       window.location.href = data.url;
     } catch (error) {
@@ -32,6 +46,8 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
         title: "Erro ao processar pagamento",
         description: "Não foi possível iniciar o checkout. Tente novamente mais tarde."
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,8 +83,9 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
           onClick={handleSubscribe} 
           className="w-full" 
           variant={isPopular ? "default" : "outline"}
+          disabled={isLoading}
         >
-          Assinar agora
+          {isLoading ? "Processando..." : "Assinar agora"}
         </Button>
       </CardFooter>
     </Card>

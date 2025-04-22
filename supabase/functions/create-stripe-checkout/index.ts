@@ -8,9 +8,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Tabela de Funções - create-stripe-checkout/index.ts
+ * --------------------------------------------------------------------------------------------------
+ * | Função                 | Descrição                                                             |
+ * |------------------------|-----------------------------------------------------------------------|
+ * | logStep                | Registra eventos de log com detalhes opcionais para depuração.        |
+ * | serve                  | Função principal que processa requisições HTTP e inicia um checkout   |
+ * |                        | do Stripe para um usuário autenticado.                                |
+ * --------------------------------------------------------------------------------------------------
+ */
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+  console.log(`[CREATE-STRIPE-CHECKOUT] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -29,6 +40,7 @@ serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      logStep("Erro: Header de autorização não encontrado");
       throw new Error('Não autorizado');
     }
     
@@ -36,6 +48,7 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
+      logStep("Erro ao autenticar usuário:", userError);
       throw new Error('Usuário não encontrado');
     }
     
@@ -46,14 +59,32 @@ serve(async (req) => {
     const planId = body.priceId;
     
     if (!planId) {
+      logStep("Erro: ID de plano não fornecido");
       throw new Error('ID de plano não fornecido');
     }
     
     logStep("Plano selecionado", { planId });
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeKey) {
+      logStep("Erro: Chave de API do Stripe não configurada");
+      throw new Error('Chave de API do Stripe não configurada. Por favor, configure a chave secreta do Stripe nas variáveis de ambiente.');
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     });
+
+    logStep("Inicializando Stripe...");
+    
+    try {
+      // Teste de conexão com o Stripe
+      await stripe.balance.retrieve();
+      logStep("Conexão com Stripe estabelecida com sucesso");
+    } catch (stripeError) {
+      logStep("Erro na conexão com Stripe:", stripeError);
+      throw new Error(`Erro na comunicação com Stripe: ${stripeError.message}`);
+    }
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string;
@@ -88,7 +119,10 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Erro no checkout:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      details: "Verifique se a chave de API do Stripe está configurada corretamente nas variáveis de ambiente."
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     });
