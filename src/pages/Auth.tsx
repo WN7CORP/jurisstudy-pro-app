@@ -138,7 +138,6 @@ const Auth: React.FC = () => {
           </CarouselContent>
           <CarouselPrevious className="left-2 text-white" />
           <CarouselNext className="right-2 text-white" />
-        </CarouselContent>
         </Carousel>
 
         {/* Funcionalidades Desktop */}
