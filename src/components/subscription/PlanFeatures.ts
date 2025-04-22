@@ -10,6 +10,7 @@ export type SubscriptionPlan = {
   name: string;
   price: number;
   features: PlanFeature[];
+  kiwifyUrl: string;
 };
 
 export const subscriptionPlans: SubscriptionPlan[] = [
@@ -18,6 +19,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     priceId: "price_1RGbRPIIaptXZgSJLTf0L24w",
     name: "Estudante",
     price: 11.99,
+    kiwifyUrl: "https://kiwify.app/k9BdT6f",
     features: [
       { name: "Acesso a flashcards", included: true },
       { name: "Acesso a questões", included: true },
@@ -32,6 +34,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     priceId: "price_1RGbSVIIaptXZgSJctc9sYiR",
     name: "Platina",
     price: 19.99,
+    kiwifyUrl: "https://kiwify.app/ATAIbuB",
     features: [
       { name: "Acesso a flashcards", included: true },
       { name: "Acesso a questões", included: true },
@@ -46,6 +49,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     priceId: "price_1RGbTPIIaptXZgSJW8GstpNw",
     name: "Magistral",
     price: 29.99,
+    kiwifyUrl: "https://kiwify.app/Ne3vy2c",
     features: [
       { name: "Acesso a flashcards", included: true },
       { name: "Acesso a questões", included: true },
