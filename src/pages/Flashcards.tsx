@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,23 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-
-interface FlashCard {
-  id: number;
-  area: string | null;
-  tema: string | null;
-  pergunta: string | null;
-  resposta: string | null;
-  explicacao: string | null;
-}
-
-interface UserProgress {
-  correct_count: number;
-  incorrect_count: number;
-  confidence_level: number;
-  last_reviewed: string;
-  flashcard_id: number;
-}
+import { FlashCard, UserProgress } from "@/types/flashcards";
 
 interface Category {
   area: string;
@@ -160,7 +143,9 @@ const Flashcards: React.FC = () => {
         if (error) {
           console.error("Erro ao buscar progresso:", error);
         } else if (data) {
-          setUserProgress(data);
+          // Converter dados para o tipo UserProgress
+          const typedProgress = data as unknown as UserProgress[];
+          setUserProgress(typedProgress);
           
           // Atualizar o progresso nos conjuntos de flashcards
           setFlashcardSets(prevSets => {
@@ -172,7 +157,7 @@ const Flashcards: React.FC = () => {
               if (setCards.length === 0) return set;
               
               const setCardIds = setCards.map(card => card.id);
-              const progressEntries = data.filter(p => setCardIds.includes(p.flashcard_id));
+              const progressEntries = typedProgress.filter(p => setCardIds.includes(p.flashcard_id));
               
               if (progressEntries.length === 0) return set;
               

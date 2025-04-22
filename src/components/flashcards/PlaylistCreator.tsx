@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { ChevronRight, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Playlist, PlaylistItem } from "@/types/flashcards";
 
 interface FlashcardOption {
   id: number;
@@ -20,21 +21,6 @@ interface FlashcardOption {
 
 interface PlaylistCreatorProps {
   onClose: () => void;
-}
-
-// Definição da interface para a playlist
-interface Playlist {
-  id?: string;
-  user_id: string;
-  name: string;
-  description: string | null;
-}
-
-// Definição da interface para os itens da playlist
-interface PlaylistItem {
-  playlist_id: string;
-  flashcard_id: number;
-  position: number;
 }
 
 const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
@@ -113,7 +99,7 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       const userId = sessionData.session.user.id;
       
       // Criar playlist
-      const newPlaylist: Playlist = {
+      const newPlaylist = {
         user_id: userId,
         name,
         description: description || null
@@ -121,7 +107,7 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       
       const { data: playlistData, error: playlistError } = await supabase
         .from('flashcard_playlists')
-        .insert(newPlaylist as any)
+        .insert(newPlaylist)
         .select()
         .single();
         
@@ -130,7 +116,7 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       }
       
       // Adicionar flashcards à playlist
-      const playlistItems: PlaylistItem[] = selectedCards.map((card, index) => ({
+      const playlistItems: any[] = selectedCards.map((card, index) => ({
         playlist_id: playlistData.id,
         flashcard_id: card.id,
         position: index
@@ -138,7 +124,7 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       
       const { error: itemsError } = await supabase
         .from('playlist_flashcards')
-        .insert(playlistItems as any);
+        .insert(playlistItems);
         
       if (itemsError) {
         throw itemsError;

@@ -5,26 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, ThumbsUp, ThumbsDown, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { FlashCard, UserProgress } from "@/types/flashcards";
 
 interface FlashcardStudyViewProps {
-  cards: Array<{
-    id: number;
-    pergunta: string | null;
-    resposta: string | null;
-    explicacao: string | null;
-  }>;
+  cards: FlashCard[];
   onComplete: () => void;
-}
-
-// Definição da interface para o progresso do usuário
-interface UserProgress {
-  id?: string;
-  user_id: string;
-  flashcard_id: number;
-  correct_count: number;
-  incorrect_count: number;
-  confidence_level: number;
-  last_reviewed: string;
 }
 
 const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComplete }) => {
@@ -66,7 +51,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
       
       const userId = sessionData.session.user.id;
       
-      // Verificar progresso existente usando a API genérica do Supabase para contornar problemas de tipo
+      // Verificar progresso existente usando API genérica
       const { data: existingProgressData, error: fetchError } = await supabase
         .from('user_flashcard_progress')
         .select('*')
@@ -79,9 +64,10 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
         throw fetchError;
       }
       
-      const existingProgress = existingProgressData as UserProgress | null;
-      
-      if (existingProgress) {
+      if (existingProgressData) {
+        // Cast para o tipo esperado
+        const existingProgress = existingProgressData as unknown as UserProgress;
+        
         // Atualizar progresso existente
         const { error } = await supabase
           .from('user_flashcard_progress')
@@ -93,13 +79,13 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
               : Math.max(0, existingProgress.confidence_level - 1),
             last_reviewed: new Date().toISOString(),
             updated_at: new Date().toISOString()
-          } as any)
+          })
           .eq('id', existingProgress.id);
         
         if (error) throw error;
       } else {
         // Criar nova entrada de progresso
-        const newProgress: Omit<UserProgress, 'id'> = {
+        const newProgress = {
           user_id: userId,
           flashcard_id: currentCard.id,
           correct_count: correct ? 1 : 0,
@@ -110,7 +96,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
         
         const { error } = await supabase
           .from('user_flashcard_progress')
-          .insert(newProgress as any);
+          .insert(newProgress);
         
         if (error) throw error;
       }
