@@ -1,7 +1,15 @@
 
-import { Book, BookOpen, FileText, FlaskConical, Gavel, Video, Bot, BrainCircuit } from "lucide-react";
+import { Book, BookOpen, FileText, FlaskConical, Gavel, Video, Bot, BrainCircuit, LucideIcon } from "lucide-react";
 
-export const mainFeatures = [
+interface Feature {
+  id: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  href: string;
+}
+
+export const mainFeatures: Feature[] = [
   {
     id: "1",
     title: "Vídeo-aulas",
@@ -32,7 +40,7 @@ export const mainFeatures = [
   }
 ];
 
-export const practiceFeatures = [
+export const practiceFeatures: Feature[] = [
   {
     id: "5",
     title: "Simulados",

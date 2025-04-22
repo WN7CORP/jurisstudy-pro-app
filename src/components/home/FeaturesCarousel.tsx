@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
+import { Star, LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -17,7 +17,7 @@ interface Feature {
   id: string;
   title: string;
   description: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   href: string;
   isFavorite?: boolean;
 }
@@ -54,7 +54,7 @@ const FeaturesCarousel: React.FC<FeaturesCarouselProps> = ({
             `}>
               <div className="flex flex-col items-center h-full">
                 <div className="w-10 h-10 rounded-full bg-netflix-red/10 flex items-center justify-center mb-3">
-                  {feature.icon}
+                  {React.createElement(feature.icon, { size: 20, className: "text-netflix-red" })}
                 </div>
                 <h3 className="text-lg font-medium text-netflix-offWhite text-center mb-2">
                   {feature.title}
