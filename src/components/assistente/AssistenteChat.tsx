@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, Sparkles, BookText, Map, Brain, Newspaper, FileText, FilmReel, Gamepad } from "lucide-react";
+import { Send, Sparkles, BookText, Map, Brain, Newspaper, FileText, Video, Gamepad } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendMessageToGemini } from "@/utils/geminiAI";
@@ -114,7 +114,7 @@ export const AssistenteChat: React.FC = () => {
       id: 'jurisflix', 
       name: 'JurisFlix', 
       description: 'Recomendar conteúdo audiovisual jurídico', 
-      icon: <FilmReel className="h-5 w-5" />, 
+      icon: <Video className="h-5 w-5" />, 
       action: '/jurisflix', 
       module: 'jurisflix'
     },

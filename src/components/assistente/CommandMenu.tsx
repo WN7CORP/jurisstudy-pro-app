@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
-import { Map, BookText, Brain, FileText, Newspaper, FilmReel, Gamepad } from "lucide-react";
+import { Map, BookText, Brain, FileText, Newspaper, Video, Gamepad } from "lucide-react";
 
 interface CommandOption {
   id: string;
@@ -58,7 +58,7 @@ export const CommandMenu: React.FC<CommandMenuProps> = ({ isOpen, onClose, onSel
       id: 'jurisflix', 
       name: 'JurisFlix', 
       description: 'Recomendar conteúdo audiovisual jurídico', 
-      icon: <FilmReel className="h-5 w-5" />, 
+      icon: <Video className="h-5 w-5" />, 
       action: '/jurisflix' 
     },
     { 
