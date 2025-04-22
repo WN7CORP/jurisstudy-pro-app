@@ -9,7 +9,7 @@ import {
   Layers,
   HelpCircle,
   Award,
-  GraduationCap,  // Changed from 'Graduation'
+  GraduationCap,
   Map,
   Search,
   Video,
@@ -18,7 +18,7 @@ import {
   Newspaper,
   PenTool,
   FileText as FileIcon,
-  Computer,  // Changed from 'Desktop'
+  Computer,  // Updated from Desktop
   Bot
 } from "lucide-react";
 
