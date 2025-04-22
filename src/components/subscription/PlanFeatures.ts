@@ -6,7 +6,6 @@ export type PlanFeature = {
 
 export type SubscriptionPlan = {
   id: string;
-  priceId: string;
   name: string;
   price: number;
   features: PlanFeature[];
@@ -15,8 +14,7 @@ export type SubscriptionPlan = {
 
 export const subscriptionPlans: SubscriptionPlan[] = [
   {
-    id: "estudante",
-    priceId: "price_1RGbRPIIaptXZgSJLTf0L24w",
+    id: "estudante_mensal",
     name: "Estudante",
     price: 11.99,
     kiwifyUrl: "https://kiwify.app/k9BdT6f",
@@ -30,8 +28,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     ],
   },
   {
-    id: "platina",
-    priceId: "price_1RGbSVIIaptXZgSJctc9sYiR",
+    id: "platina_mensal",
     name: "Platina",
     price: 19.99,
     kiwifyUrl: "https://kiwify.app/ATAIbuB",
@@ -45,8 +42,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     ],
   },
   {
-    id: "magistral",
-    priceId: "price_1RGbTPIIaptXZgSJW8GstpNw",
+    id: "magistral_mensal",
     name: "Magistral",
     price: 29.99,
     kiwifyUrl: "https://kiwify.app/Ne3vy2c",

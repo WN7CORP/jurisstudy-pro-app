@@ -9,9 +9,9 @@ const corsHeaders = {
 
 // Mapeamento dos IDs dos planos da Cakto
 const CAKTO_PLAN_IDs = {
-  estudante: "estudante_mensal",
-  platina: "platina_mensal",
-  magistral: "magistral_mensal"
+  estudante: "36vq3qk_355330",
+  platina: "xu4vwp6_355334",
+  magistral: "3dnhw9q_355336"
 };
 
 serve(async (req) => {
