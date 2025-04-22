@@ -9,10 +9,10 @@ const corsHeaders = {
 };
 
 // Mapeamento dos IDs de preço do Stripe
-const PRICE_IDS = {
-  estudante: "prod_SAxMvIaGX6rdjv",
-  platina: "prod_SAxNWVgnpM84jW",
-  magistral: "prod_SAxO5nw5rdgEaq"
+const PRICE_IDs = {
+  estudante: "price_1RGbRPIIaptXZgSJLTf0L24w",
+  platina: "price_1RGbSVIIaptXZgSJctc9sYiR",
+  magistral: "price_1RGbTPIIaptXZgSJW8GstpNw"
 };
 
 const logStep = (step: string, details?: any) => {
@@ -58,8 +58,8 @@ serve(async (req) => {
       throw new Error('Plano inválido');
     }
     
-    const stripeProductId = PRICE_IDs[planId as keyof typeof PRICE_IDs];
-    logStep("Plano selecionado:", { planId, stripeProductId });
+    const stripePriceId = PRICE_IDs[planId as keyof typeof PRICE_IDs];
+    logStep("Plano selecionado:", { planId, stripePriceId });
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
@@ -90,14 +90,14 @@ serve(async (req) => {
     const origin = req.headers.get('origin') || 'http://localhost:3000';
     logStep("Criando sessão de checkout...", { 
       customer: customerId,
-      priceId: stripeProductId 
+      priceId: stripePriceId 
     });
     
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       line_items: [
         {
-          price: stripeProductId,
+          price: stripePriceId,
           quantity: 1,
         },
       ],

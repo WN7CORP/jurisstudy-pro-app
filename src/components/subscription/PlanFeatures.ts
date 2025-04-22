@@ -6,7 +6,7 @@ export type PlanFeature = {
 
 export type SubscriptionPlan = {
   id: string;
-  priceId: string; // Adicionando campo para o ID do preço
+  priceId: string;
   name: string;
   price: number;
   features: PlanFeature[];
@@ -15,7 +15,7 @@ export type SubscriptionPlan = {
 export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: "estudante",
-    priceId: "prod_SAxMvIaGX6rdjv",
+    priceId: "price_1RGbRPIIaptXZgSJLTf0L24w",
     name: "Estudante",
     price: 11.99,
     features: [
@@ -29,7 +29,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
   {
     id: "platina",
-    priceId: "prod_SAxNWVgnpM84jW",
+    priceId: "price_1RGbSVIIaptXZgSJctc9sYiR",
     name: "Platina",
     price: 19.99,
     features: [
@@ -43,7 +43,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
   {
     id: "magistral",
-    priceId: "prod_SAxO5nw5rdgEaq",
+    priceId: "price_1RGbTPIIaptXZgSJW8GstpNw",
     name: "Magistral",
     price: 29.99,
     features: [
