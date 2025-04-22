@@ -70,7 +70,7 @@ export function SubscriptionStatus({
             <CardTitle>Status da Assinatura</CardTitle>
             <CardDescription>Seu plano atual</CardDescription>
           </div>
-          <Badge variant="success">Ativo</Badge>
+          <Badge variant="default">Ativo</Badge>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
