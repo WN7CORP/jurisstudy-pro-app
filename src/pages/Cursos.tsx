@@ -60,17 +60,17 @@ const Cursos: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6">
         <div className="flex flex-col">
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2">Cursos</h1>
-            <p className="text-muted-foreground">
+          <div className="mb-4 sm:mb-6">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Cursos</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Aprendizado estruturado para sua jornada jurídica
             </p>
           </div>
 
           {isLoading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map((item) => (
                 <div key={item} className="flex flex-col space-y-3">
                   <Skeleton className="h-[200px] w-full rounded-xl" />
@@ -82,11 +82,11 @@ const Cursos: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {Object.entries(cursosAgrupados).map(([area, cursosDaArea]) => (
                 <div key={area} className="space-y-4">
-                  <h2 className="text-xl md:text-2xl font-bold">Área {area}</h2>
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold">Área {area}</h2>
+                  <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {cursosDaArea.map((curso) => (
                       <CursoCard
                         key={curso.id}

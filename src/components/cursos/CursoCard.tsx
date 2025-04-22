@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,13 +42,12 @@ export const CursoCard: React.FC<CursoCardProps> = ({
           )}
         </div>
       )}
-      <CardHeader>
-        <CardTitle className="text-xl line-clamp-2">{materia}</CardTitle>
-        {sobre && <CardDescription className="line-clamp-3">{sobre}</CardDescription>}
+      <CardHeader className="flex-grow">
+        <CardTitle className="text-lg sm:text-xl line-clamp-2">{materia}</CardTitle>
+        {sobre && <CardDescription className="line-clamp-3 text-sm">{sobre}</CardDescription>}
       </CardHeader>
-      <CardContent className="flex-grow" />
-      <CardFooter className="flex flex-col sm:flex-row gap-2 justify-between items-center p-4">
-        <Button onClick={onClick} variant="default" className="w-full sm:w-auto">
+      <CardFooter className="flex flex-col sm:flex-row gap-2 p-4">
+        <Button onClick={onClick} className="w-full sm:w-auto">
           {progresso?.iniciado ? 'Continuar Curso' : 'Acessar Curso'}
         </Button>
         {download && (
