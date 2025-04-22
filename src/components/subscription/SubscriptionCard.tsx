@@ -44,9 +44,7 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
     
     setErrorMessage(message);
     
-    toast({
-      variant: "destructive",
-      title: "Erro ao processar pagamento",
+    toast.error("Erro ao processar pagamento", {
       description: message
     });
   };
@@ -56,10 +54,7 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
       setIsLoading(true);
       setErrorMessage(null);
       
-      toast({
-        title: "Processando",
-        description: "Inicializando o checkout do Cakto...",
-      });
+      toast.loading("Inicializando o checkout do Cakto...");
       
       console.log(`Iniciando checkout para o plano: ${plan.name} (ID: ${plan.id})`);
       
