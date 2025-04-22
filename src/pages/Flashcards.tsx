@@ -1,3 +1,4 @@
+
 import React from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -134,7 +135,7 @@ const Flashcards: React.FC = () => {
                     <div className="w-full bg-secondary/30 h-2 rounded-full">
                       <div 
                         className="bg-netflix-red h-2 rounded-full" 
-                        style={{ width: ${set.progress}% }}
+                        style={{ width: `${set.progress}%` }}
                       ></div>
                     </div>
                     <div className="flex justify-between items-center mt-4">
@@ -169,7 +170,7 @@ const Flashcards: React.FC = () => {
                           <div className="w-32 bg-secondary/30 h-2 rounded-full">
                             <div 
                               className="bg-netflix-red h-2 rounded-full" 
-                              style={{ width: ${set.progress}% }}
+                              style={{ width: `${set.progress}%` }}
                             ></div>
                           </div>
                         </div>
