@@ -16,12 +16,26 @@ const corsHeaders = {
  * | logStep                | Registra eventos de log com detalhes opcionais para depuração.        |
  * | serve                  | Função principal que processa requisições HTTP e inicia um checkout   |
  * |                        | do Stripe para um usuário autenticado.                                |
+ * | testStripeConnection   | Testa a conexão com a API do Stripe antes de iniciar o checkout.      |
  * --------------------------------------------------------------------------------------------------
  */
+
+// Chave Stripe fixa para debug - NOTA: Em produção, é melhor usar variáveis de ambiente
+const STRIPE_SECRET_KEY = "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";
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-STRIPE-CHECKOUT] ${step}${detailsStr}`);
+};
+
+// Função para testar a conexão com o Stripe
+const testStripeConnection = async (stripe: Stripe) => {
+  try {
+    await stripe.balance.retrieve();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
+  }
 };
 
 serve(async (req) => {
@@ -65,26 +79,21 @@ serve(async (req) => {
     
     logStep("Plano selecionado", { planId });
 
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) {
-      logStep("Erro: Chave de API do Stripe não configurada");
-      throw new Error('Chave de API do Stripe não configurada. Por favor, configure a chave secreta do Stripe nas variáveis de ambiente.');
-    }
-
-    const stripe = new Stripe(stripeKey, {
+    // Inicializar Stripe com a chave fornecida
+    const stripe = new Stripe(STRIPE_SECRET_KEY, {
       apiVersion: '2023-10-16',
     });
 
     logStep("Inicializando Stripe...");
     
-    try {
-      // Teste de conexão com o Stripe
-      await stripe.balance.retrieve();
-      logStep("Conexão com Stripe estabelecida com sucesso");
-    } catch (stripeError) {
-      logStep("Erro na conexão com Stripe:", stripeError);
-      throw new Error(`Erro na comunicação com Stripe: ${stripeError.message}`);
+    // Testar a conexão com o Stripe
+    const connectionTest = await testStripeConnection(stripe);
+    if (!connectionTest.success) {
+      logStep("Erro na conexão com Stripe:", connectionTest.error);
+      throw new Error(`Erro na comunicação com Stripe: ${connectionTest.error.message}`);
     }
+    
+    logStep("Conexão com Stripe estabelecida com sucesso");
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string;
@@ -121,7 +130,7 @@ serve(async (req) => {
     console.error("Erro no checkout:", error);
     return new Response(JSON.stringify({ 
       error: error.message,
-      details: "Verifique se a chave de API do Stripe está configurada corretamente nas variáveis de ambiente."
+      details: "Verifique se a chave de API do Stripe está configurada corretamente."
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

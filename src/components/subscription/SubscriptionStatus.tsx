@@ -7,6 +7,17 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+/**
+ * Tabela de Funções - SubscriptionStatus.tsx
+ * --------------------------------------------------------------------------------------------------
+ * | Função                 | Descrição                                                             |
+ * |------------------------|-----------------------------------------------------------------------|
+ * | SubscriptionStatus     | Componente que exibe o status atual da assinatura do usuário.         |
+ * | handleManageSubscription| Gerencia o redirecionamento para o portal do cliente do Stripe.      |
+ * | formatDate             | Formata a data de fim da assinatura para exibição.                    |
+ * --------------------------------------------------------------------------------------------------
+ */
+
 interface SubscriptionStatusProps {
   isSubscribed: boolean;
   subscriptionTier?: string | null;

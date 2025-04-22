@@ -7,6 +7,17 @@ import type { SubscriptionPlan } from './PlanFeatures';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ * Tabela de Funções - SubscriptionCard.tsx
+ * --------------------------------------------------------------------------------------------------
+ * | Função                 | Descrição                                                             |
+ * |------------------------|-----------------------------------------------------------------------|
+ * | SubscriptionCard       | Componente que renderiza um cartão de plano de assinatura com seus    |
+ * |                        | detalhes e um botão para iniciar o processo de checkout.              |
+ * | handleSubscribe        | Gerencia o processo de checkout com Stripe, tratando erros e sucesso. |
+ * --------------------------------------------------------------------------------------------------
+ */
+
 interface SubscriptionCardProps {
   plan: SubscriptionPlan;
   isPopular?: boolean;

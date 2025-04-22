@@ -8,6 +8,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+/**
+ * Tabela de Funções - customer-portal/index.ts
+ * --------------------------------------------------------------------------------------------------------
+ * | Função                 | Descrição                                                                   |
+ * |------------------------|-----------------------------------------------------------------------------|
+ * | logStep                | Registra eventos de log com detalhes opcionais para depuração.              |
+ * | serve                  | Função principal que cria uma sessão do portal do cliente do Stripe.        |
+ * --------------------------------------------------------------------------------------------------------
+ */
+
+// Chave Stripe fixa para debug - NOTA: Em produção, é melhor usar variáveis de ambiente
+const STRIPE_SECRET_KEY = "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";
+
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CUSTOMER-PORTAL] ${step}${detailsStr}`);
@@ -19,8 +32,8 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Iniciando função do portal do cliente");
-    
+    logStep("Função iniciada");
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -29,6 +42,7 @@ serve(async (req) => {
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      logStep("Erro: Header de autorização não encontrado");
       throw new Error('Não autorizado');
     }
     
@@ -36,27 +50,26 @@ serve(async (req) => {
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !userData.user) {
+      logStep("Erro ao autenticar usuário:", userError);
       throw new Error('Usuário não encontrado');
     }
     
     const user = userData.user;
     logStep("Usuário autenticado", { email: user.email });
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
+    const stripe = new Stripe(STRIPE_SECRET_KEY, {
       apiVersion: '2023-10-16',
     });
 
-    const customers = await stripe.customers.list({
-      email: user.email,
-      limit: 1,
-    });
-
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    
     if (customers.data.length === 0) {
-      throw new Error('Cliente não encontrado no Stripe');
+      logStep("Nenhum cliente Stripe encontrado");
+      throw new Error('Nenhum cliente Stripe encontrado para este usuário');
     }
 
     const customerId = customers.data[0].id;
-    logStep("Cliente encontrado no Stripe", { customerId });
+    logStep("Cliente encontrado", { customerId });
 
     const origin = req.headers.get('origin') || 'http://localhost:3000';
     const session = await stripe.billingPortal.sessions.create({
@@ -64,16 +77,18 @@ serve(async (req) => {
       return_url: `${origin}/profile`,
     });
 
-    logStep("Sessão do portal criada", { sessionId: session.id });
+    logStep("Sessão do portal criada", { sessionUrl: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error("Erro:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("Erro ao criar sessão do portal:", error);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+      status: 500,
     });
   }
 });
