@@ -4,17 +4,10 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   Home,
   Book,
-  BookOpen,
-  FileText,
-  Layers,
-  HelpCircle,
-  Award,
-  User
+  LayersIcon,
+  Compass,
+  Award
 } from "lucide-react";
-
-interface MobileNavProps {
-  className?: string;
-}
 
 interface NavItem {
   icon: React.ElementType;
@@ -25,17 +18,16 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: Home, label: "Início", href: "/" },
   { icon: Book, label: "Biblioteca", href: "/biblioteca" },
-  { icon: Layers, label: "Flashcards", href: "/flashcards" },
-  { icon: HelpCircle, label: "Questões", href: "/questoes" },
+  { icon: LayersIcon, label: "Flashcards", href: "/flashcards" },
+  { icon: Compass, label: "Explorar", href: "/explorar" },
   { icon: Award, label: "Ranking", href: "/ranking" },
-  { icon: User, label: "Perfil", href: "/profile" },
 ];
 
-const MobileNav: React.FC<MobileNavProps> = ({ className = "" }) => {
+const MobileNav = () => {
   const location = useLocation();
 
   return (
-    <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-netflix-black border-t border-netflix-darkGray z-50 ${className}`}>
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-netflix-black border-t border-netflix-darkGray z-50">
       <div className="flex justify-around px-2 py-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
@@ -51,9 +43,9 @@ const MobileNav: React.FC<MobileNavProps> = ({ className = "" }) => {
               } transition-colors`}
             >
               <item.icon className={`h-5 w-5 mb-1 ${isActive ? "text-netflix-red" : ""}`} />
-              <span className="text-xs">{item.label.split(' ')[0]}</span>
+              <span className="text-xs">{item.label}</span>
             </Link>
-          )
+          );
         })}
       </div>
     </nav>
