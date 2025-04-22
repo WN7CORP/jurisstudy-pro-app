@@ -19,6 +19,8 @@ export interface UserProgress {
   last_reviewed: string;
   created_at?: string;
   updated_at?: string;
+  display_mode?: string; // Modo de exibição: 'combined' ou 'flip'
+  selected_themes?: string[]; // Temas selecionados
 }
 
 export interface Playlist {
@@ -34,6 +36,12 @@ export interface PlaylistItem {
   playlist_id: string;
   flashcard_id: number;
   position: number;
+}
+
+export interface StudyPreferences {
+  displayMode: 'combined' | 'flip';
+  selectedThemes: string[];
+  lastPosition?: number;
 }
 
 /**
@@ -53,4 +61,8 @@ export interface PlaylistItem {
  * | toggleFlashcard | Marca/desmarca um flashcard para a playlist |
  * | getUniqueAreas | Obtém áreas únicas para os filtros |
  * | handleStudySet | Inicia o estudo de um conjunto de flashcards |
+ * | saveStudyPreferences | Salva as preferências de estudo do usuário |
+ * | getStudyPreferences | Obtém as preferências de estudo do usuário |
+ * | updateDisplayMode | Atualiza o modo de exibição dos flashcards |
+ * | updateSelectedThemes | Atualiza os temas selecionados para estudo |
  */

@@ -39,6 +39,13 @@ const EstudoFlashcards: React.FC = () => {
     
     setCards(state.cards);
     setSetInfo(state.setInfo);
+    
+    // Apareça mais suavemente
+    document.body.classList.add('animate-fade-in');
+    
+    return () => {
+      document.body.classList.remove('animate-fade-in');
+    };
   }, [location, navigate, toast]);
 
   const handleComplete = () => {
@@ -65,7 +72,7 @@ const EstudoFlashcards: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 animate-fade-in">
         <div className="mb-6 flex items-center gap-4">
           <Button variant="outline" onClick={handleBack}>
             <ChevronLeft className="h-4 w-4 mr-1" /> Voltar
