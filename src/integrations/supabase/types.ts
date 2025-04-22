@@ -154,6 +154,39 @@ export type Database = {
         }
         Relationships: []
       }
+      cursos_narrados: {
+        Row: {
+          capa: string | null
+          created_at: string
+          download: string | null
+          id: number
+          link: string | null
+          materia: string | null
+          sequencia: string | null
+          sobre: string | null
+        }
+        Insert: {
+          capa?: string | null
+          created_at?: string
+          download?: string | null
+          id?: number
+          link?: string | null
+          materia?: string | null
+          sequencia?: string | null
+          sobre?: string | null
+        }
+        Update: {
+          capa?: string | null
+          created_at?: string
+          download?: string | null
+          id?: number
+          link?: string | null
+          materia?: string | null
+          sequencia?: string | null
+          sobre?: string | null
+        }
+        Relationships: []
+      }
       filmes_juridicos: {
         Row: {
           created_at: string | null
