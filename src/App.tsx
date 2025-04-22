@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,6 +28,7 @@ import Desktop from "./pages/Desktop";
 import Assistente from "./pages/Assistente";
 import Explorar from "./pages/Explorar";
 import EstudoFlashcards from "./pages/EstudoFlashcards";
+import Assinatura from "./pages/Assinatura";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +63,7 @@ function App() {
             <Route path="/desktop" element={<Desktop />} />
             <Route path="/assistente" element={<Assistente />} />
             <Route path="/explorar" element={<Explorar />} />
+            <Route path="/assinatura" element={<Assinatura />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

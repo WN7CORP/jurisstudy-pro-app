@@ -4,6 +4,18 @@ import Layout from '@/components/layout/Layout';
 import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 import { subscriptionPlans } from '@/components/subscription/PlanFeatures';
 
+/**
+ * Tabela de Funções - Assinatura.tsx
+ * -------------------------------------------------------------------------------------------------
+ * | Função                  | Descrição                                                           |
+ * |-------------------------|---------------------------------------------------------------------|
+ * | Assinatura (Componente) | Renderiza a página de planos de assinatura com cards informativos   |
+ * |                         | para cada plano disponível. Apresenta detalhes como preço e         |
+ * |                         | recursos incluídos. Aciona o Stripe quando o usuário clica para     |
+ * |                         | assinar um plano.                                                   |
+ * -------------------------------------------------------------------------------------------------
+ */
+
 export default function Assinatura() {
   return (
     <Layout>
