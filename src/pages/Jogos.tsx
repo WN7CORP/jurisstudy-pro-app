@@ -47,8 +47,8 @@ const converterParaJogoJuridico = (jogo: any): JogoJuridico => {
 const Jogos: React.FC = () => {
   const [jogos, setJogos] = useState<JogoJuridico[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filtroMateria, setFiltroMateria] = useState<string>("");
-  const [filtroNivel, setFiltroNivel] = useState<string>("");
+  const [filtroMateria, setFiltroMateria] = useState<string>("todas");
+  const [filtroNivel, setFiltroNivel] = useState<string>("todos");
   const [busca, setBusca] = useState<string>("");
   const { toast } = useToast();
 
@@ -84,8 +84,8 @@ const Jogos: React.FC = () => {
       jogo.nome.toLowerCase().includes(busca.toLowerCase()) ||
       jogo.tema.toLowerCase().includes(busca.toLowerCase());
     
-    const matchMateria = filtroMateria === "" || jogo.materia === filtroMateria;
-    const matchNivel = filtroNivel === "" || jogo.nivel_dificuldade === filtroNivel;
+    const matchMateria = filtroMateria === "todas" || jogo.materia === filtroMateria;
+    const matchNivel = filtroNivel === "todos" || jogo.nivel_dificuldade === filtroNivel;
 
     return matchBusca && matchMateria && matchNivel;
   });
@@ -122,7 +122,7 @@ const Jogos: React.FC = () => {
                 <SelectValue placeholder="Filtrar por matéria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as matérias</SelectItem>
+                <SelectItem value="todas">Todas as matérias</SelectItem>
                 {materias.map((materia) => (
                   <SelectItem key={materia} value={materia}>
                     {materia}
@@ -135,7 +135,7 @@ const Jogos: React.FC = () => {
                 <SelectValue placeholder="Filtrar por nível" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os níveis</SelectItem>
+                <SelectItem value="todos">Todos os níveis</SelectItem>
                 <SelectItem value="facil">Fácil</SelectItem>
                 <SelectItem value="medio">Médio</SelectItem>
                 <SelectItem value="dificil">Difícil</SelectItem>
