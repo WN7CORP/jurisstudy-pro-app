@@ -51,9 +51,9 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
       
       const userId = sessionData.session.user.id;
       
-      // Verificar progresso existente usando API genérica
+      // Verificar progresso existente usando API genérica com casting explícito
       const { data: existingProgressData, error: fetchError } = await supabase
-        .from('user_flashcard_progress')
+        .from('user_flashcard_progress' as any)
         .select('*')
         .eq('user_id', userId)
         .eq('flashcard_id', currentCard.id)
@@ -70,7 +70,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
         
         // Atualizar progresso existente
         const { error } = await supabase
-          .from('user_flashcard_progress')
+          .from('user_flashcard_progress' as any)
           .update({
             correct_count: correct ? existingProgress.correct_count + 1 : existingProgress.correct_count,
             incorrect_count: !correct ? existingProgress.incorrect_count + 1 : existingProgress.incorrect_count,
@@ -85,7 +85,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
         if (error) throw error;
       } else {
         // Criar nova entrada de progresso
-        const newProgress = {
+        const newProgress: Omit<UserProgress, 'id' | 'created_at' | 'updated_at'> = {
           user_id: userId,
           flashcard_id: currentCard.id,
           correct_count: correct ? 1 : 0,
@@ -95,8 +95,8 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
         };
         
         const { error } = await supabase
-          .from('user_flashcard_progress')
-          .insert(newProgress);
+          .from('user_flashcard_progress' as any)
+          .insert(newProgress as any);
         
         if (error) throw error;
       }

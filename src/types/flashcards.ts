@@ -35,3 +35,17 @@ export interface PlaylistItem {
   flashcard_id: number;
   position: number;
 }
+
+/**
+ * Tabela de funções utilizadas nos flashcards
+ * 
+ * | Função | Descrição |
+ * |--------|-----------|
+ * | updateProgress | Atualiza o progresso do usuário em um flashcard |
+ * | createPlaylist | Cria uma nova playlist de flashcards |
+ * | addFlashcardToPlaylist | Adiciona um flashcard a uma playlist |
+ * | getFlashcardsByArea | Busca flashcards por área |
+ * | getFlashcardsByTema | Busca flashcards por tema |
+ * | getUserProgress | Busca o progresso do usuário em um flashcard |
+ * | getPlaylistsByUser | Busca playlists criadas por um usuário |
+ */

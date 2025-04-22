@@ -99,15 +99,15 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       const userId = sessionData.session.user.id;
       
       // Criar playlist
-      const newPlaylist = {
+      const newPlaylist: Omit<Playlist, 'id' | 'created_at' | 'updated_at'> = {
         user_id: userId,
         name,
         description: description || null
       };
       
       const { data: playlistData, error: playlistError } = await supabase
-        .from('flashcard_playlists')
-        .insert(newPlaylist)
+        .from('flashcard_playlists' as any)
+        .insert(newPlaylist as any)
         .select()
         .single();
         
@@ -116,15 +116,15 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
       }
       
       // Adicionar flashcards à playlist
-      const playlistItems: any[] = selectedCards.map((card, index) => ({
-        playlist_id: playlistData.id,
+      const playlistItems: PlaylistItem[] = selectedCards.map((card, index) => ({
+        playlist_id: playlistData.id as string,
         flashcard_id: card.id,
         position: index
       }));
       
       const { error: itemsError } = await supabase
-        .from('playlist_flashcards')
-        .insert(playlistItems);
+        .from('playlist_flashcards' as any)
+        .insert(playlistItems as any);
         
       if (itemsError) {
         throw itemsError;

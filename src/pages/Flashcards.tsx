@@ -136,7 +136,7 @@ const Flashcards: React.FC = () => {
       
       if (sessionData?.session?.user?.id) {
         const { data, error } = await supabase
-          .from('user_flashcard_progress')
+          .from('user_flashcard_progress' as any)
           .select('*')
           .eq('user_id', sessionData.session.user.id);
           
@@ -215,7 +215,7 @@ const Flashcards: React.FC = () => {
       
       if (sessionData?.session?.user?.id) {
         const { data, error } = await supabase
-          .from('flashcard_playlists')
+          .from('flashcard_playlists' as any)
           .select('*')
           .eq('user_id', sessionData.session.user.id);
           
@@ -226,7 +226,7 @@ const Flashcards: React.FC = () => {
           const playlistsWithCounts = await Promise.all(
             data.map(async (playlist) => {
               const { count, error: countError } = await supabase
-                .from('playlist_flashcards')
+                .from('playlist_flashcards' as any)
                 .select('*', { count: 'exact', head: true })
                 .eq('playlist_id', playlist.id);
                 
