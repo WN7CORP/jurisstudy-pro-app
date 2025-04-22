@@ -597,9 +597,13 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          devices: Json | null
           full_name: string | null
           id: string
           level: number | null
+          notifications_app: boolean | null
+          notifications_email: boolean | null
+          notifications_promos: boolean | null
           study_progress: number | null
           updated_at: string | null
           user_type: string | null
@@ -607,9 +611,13 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          devices?: Json | null
           full_name?: string | null
           id: string
           level?: number | null
+          notifications_app?: boolean | null
+          notifications_email?: boolean | null
+          notifications_promos?: boolean | null
           study_progress?: number | null
           updated_at?: string | null
           user_type?: string | null
@@ -617,9 +625,13 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          devices?: Json | null
           full_name?: string | null
           id?: string
           level?: number | null
+          notifications_app?: boolean | null
+          notifications_email?: boolean | null
+          notifications_promos?: boolean | null
           study_progress?: number | null
           updated_at?: string | null
           user_type?: string | null
@@ -932,7 +944,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_user_account: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
