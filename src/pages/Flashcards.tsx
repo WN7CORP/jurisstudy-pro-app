@@ -1,16 +1,11 @@
+
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, PlusCircle, ChevronRight, Clock, Award } from "lucide-react";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
-
-// Inicialização do Supabase (certifique‑se de definir as variáveis de ambiente)
-const supabase: SupabaseClient = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
-);
+import { supabase } from "@/integrations/supabase/client";
 
 interface FlashCard {
   id: number;
@@ -32,9 +27,10 @@ const Flashcards: React.FC = () => {
 
   async function fetchFlashcards() {
     const { data, error } = await supabase
-      .from<FlashCard>("flash_cards")
+      .from("flash_cards")
       .select("*")
       .order("created_at", { ascending: false });
+    
     if (error) {
       console.error("Erro ao buscar flashcards:", error.message);
     } else {
