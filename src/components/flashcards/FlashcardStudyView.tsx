@@ -80,7 +80,7 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
       
       if (sessionData?.session?.user?.id) {
         // Tentar obter do banco de dados se o usuário estiver logado
-        const result = await supabase
+        const { data, error } = await supabase
           .from('user_flashcard_progress' as any)
           .select('display_mode, selected_themes')
           .eq('user_id', sessionData.session.user.id)
@@ -88,11 +88,18 @@ const FlashcardStudyView: React.FC<FlashcardStudyViewProps> = ({ cards, onComple
           .limit(1)
           .single();
           
-        if (!result.error && result.data) {
-          const data = result.data;
-          setDisplayMode((data.display_mode as 'combined' | 'flip') || 'combined');
-          if (data.selected_themes && Array.isArray(data.selected_themes)) {
-            setSelectedThemes(data.selected_themes);
+        if (!error && data) {
+          // Usar type assertion para acessar as propriedades com segurança
+          const userPrefs = data as { display_mode?: string; selected_themes?: string[] };
+          
+          // Configurar o modo de exibição
+          if (userPrefs.display_mode) {
+            setDisplayMode((userPrefs.display_mode as 'combined' | 'flip') || 'combined');
+          }
+          
+          // Configurar os temas selecionados
+          if (userPrefs.selected_themes && Array.isArray(userPrefs.selected_themes)) {
+            setSelectedThemes(userPrefs.selected_themes);
           }
         }
       } else {
