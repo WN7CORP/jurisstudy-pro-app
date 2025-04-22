@@ -38,7 +38,6 @@ const ProfileForm = () => {
         return;
       }
 
-      // Using maybeSingle() instead of single() to handle cases where the profile might not exist
       const { data, error } = await supabase
         .from('profiles')
         .select('full_name, user_type')
@@ -49,28 +48,6 @@ const ProfileForm = () => {
       
       if (data) {
         setProfile(data);
-      } else {
-        // If no profile exists, create one
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([{ 
-            id: session.user.id,
-            full_name: session.user.user_metadata.full_name || '',
-            user_type: 'universitario' 
-          }]);
-          
-        if (insertError) {
-          throw insertError;
-        } else {
-          // Fetch the profile again after creating it
-          const { data: newProfile } = await supabase
-            .from('profiles')
-            .select('full_name, user_type')
-            .eq('id', session.user.id)
-            .maybeSingle();
-            
-          if (newProfile) setProfile(newProfile);
-        }
       }
     } catch (error: any) {
       toast.error("Erro ao carregar perfil", {

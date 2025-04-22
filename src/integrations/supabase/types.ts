@@ -595,44 +595,23 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar_url: string | null
           created_at: string | null
-          devices: Json | null
           full_name: string | null
           id: string
-          level: number | null
-          notifications_app: boolean | null
-          notifications_email: boolean | null
-          notifications_promos: boolean | null
-          study_progress: number | null
           updated_at: string | null
           user_type: string | null
         }
         Insert: {
-          avatar_url?: string | null
           created_at?: string | null
-          devices?: Json | null
           full_name?: string | null
           id: string
-          level?: number | null
-          notifications_app?: boolean | null
-          notifications_email?: boolean | null
-          notifications_promos?: boolean | null
-          study_progress?: number | null
           updated_at?: string | null
           user_type?: string | null
         }
         Update: {
-          avatar_url?: string | null
           created_at?: string | null
-          devices?: Json | null
           full_name?: string | null
           id?: string
-          level?: number | null
-          notifications_app?: boolean | null
-          notifications_email?: boolean | null
-          notifications_promos?: boolean | null
-          study_progress?: number | null
           updated_at?: string | null
           user_type?: string | null
         }
