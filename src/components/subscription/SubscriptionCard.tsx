@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
  * | SubscriptionCard       | Componente que renderiza um cartão de plano de assinatura com seus    |
  * |                        | detalhes e um botão para iniciar o processo de checkout.              |
  * | handleSubscribe        | Gerencia o processo de checkout com Stripe, tratando erros e sucesso. |
+ * | handleSubscribeError   | Processa erros durante o checkout e exibe mensagens apropriadas.      |
  * --------------------------------------------------------------------------------------------------
  */
 
@@ -26,37 +27,75 @@ interface SubscriptionCardProps {
 export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+  // Função para processar erros de checkout
+  const handleSubscribeError = (error: any) => {
+    console.error('Detalhes do erro ao iniciar checkout:', error);
+    
+    let message = "Não foi possível iniciar o checkout. Tente novamente mais tarde.";
+    
+    if (typeof error === 'string') {
+      message = error;
+    } else if (error?.message) {
+      message = error.message;
+    } else if (error?.details) {
+      message = error.details;
+    }
+    
+    setErrorMessage(message);
+    
+    toast({
+      variant: "destructive",
+      title: "Erro ao processar pagamento",
+      description: message
+    });
+  };
 
   const handleSubscribe = async () => {
     try {
       setIsLoading(true);
+      setErrorMessage(null);
       
       toast({
         title: "Processando",
         description: "Inicializando o checkout do Stripe...",
       });
       
+      console.log(`Iniciando checkout para o plano: ${plan.name} (ID: ${plan.priceId})`);
+      
       const { data, error } = await supabase.functions.invoke('create-stripe-checkout', {
         body: { priceId: plan.priceId },
       });
+
+      console.log('Resposta da função create-stripe-checkout:', { data, error });
 
       if (error) {
         console.error('Erro na função create-stripe-checkout:', error);
         throw new Error(`Erro na função create-stripe-checkout: ${error.message}`);
       }
       
-      if (!data?.url) {
+      if (!data) {
+        throw new Error('Resposta vazia da API');
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      if (!data.url) {
         throw new Error('URL de checkout não encontrada na resposta');
       }
 
-      window.location.href = data.url;
+      console.log('Redirecionando para URL do Stripe:', data.url);
+      
+      // Adicionar um pequeno delay antes do redirecionamento
+      setTimeout(() => {
+        window.location.href = data.url;
+      }, 500);
+      
     } catch (error) {
-      console.error('Erro ao iniciar checkout:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao processar pagamento",
-        description: "Não foi possível iniciar o checkout. Tente novamente mais tarde."
-      });
+      handleSubscribeError(error);
     } finally {
       setIsLoading(false);
     }
@@ -88,8 +127,14 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
             </li>
           ))}
         </ul>
+        
+        {errorMessage && (
+          <div className="text-sm text-red-500 mt-2">
+            Erro: {errorMessage}
+          </div>
+        )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-2">
         <Button 
           onClick={handleSubscribe} 
           className="w-full" 
@@ -98,6 +143,16 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
         >
           {isLoading ? "Processando..." : "Assinar agora"}
         </Button>
+        
+        {/* Adiciona um link alternativo para o Kiwify como fallback */}
+        <a 
+          href={plan.kiwifyUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-xs text-center text-muted-foreground hover:underline w-full"
+        >
+          Problemas? Assine via Kiwify
+        </a>
       </CardFooter>
     </Card>
   );

@@ -17,6 +17,7 @@ const corsHeaders = {
  * | serve                  | Função principal que processa requisições HTTP e inicia um checkout   |
  * |                        | do Stripe para um usuário autenticado.                                |
  * | testStripeConnection   | Testa a conexão com a API do Stripe antes de iniciar o checkout.      |
+ * | validateStripeKey      | Verifica se a chave Stripe é válida antes de usar.                    |
  * --------------------------------------------------------------------------------------------------
  */
 
@@ -28,17 +29,28 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-STRIPE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Função para validar a chave Stripe
+const validateStripeKey = (key: string): boolean => {
+  if (!key) return false;
+  // Verificar se começa com sk_test_ ou sk_live_
+  return key.startsWith('sk_test_') || key.startsWith('sk_live_');
+};
+
 // Função para testar a conexão com o Stripe
 const testStripeConnection = async (stripe: Stripe) => {
   try {
     await stripe.balance.retrieve();
     return { success: true };
   } catch (error) {
+    console.error("Erro ao testar conexão com Stripe:", error.message);
     return { success: false, error };
   }
 };
 
 serve(async (req) => {
+  // Log detalhado da requisição
+  console.log(`[CREATE-STRIPE-CHECKOUT] Método: ${req.method}, URL: ${req.url}`);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -69,7 +81,16 @@ serve(async (req) => {
     const user = userData.user;
     logStep("Usuário autenticado", { email: user.email });
 
-    const body = await req.json();
+    // Parse do corpo da requisição
+    let body;
+    try {
+      body = await req.json();
+      console.log("Corpo da requisição:", JSON.stringify(body));
+    } catch (error) {
+      console.error("Erro ao fazer parse do corpo da requisição:", error);
+      throw new Error('Erro ao processar corpo da requisição');
+    }
+    
     const planId = body.priceId;
     
     if (!planId) {
@@ -78,6 +99,12 @@ serve(async (req) => {
     }
     
     logStep("Plano selecionado", { planId });
+
+    // Validar chave Stripe
+    if (!validateStripeKey(STRIPE_SECRET_KEY)) {
+      logStep("Erro: Chave Stripe inválida ou não encontrada");
+      throw new Error('Configuração de Stripe inválida. Chave não encontrada ou formato incorreto.');
+    }
 
     // Inicializar Stripe com a chave fornecida
     const stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -94,6 +121,20 @@ serve(async (req) => {
     }
     
     logStep("Conexão com Stripe estabelecida com sucesso");
+
+    // Verificar se o ID do preço existe
+    try {
+      const price = await stripe.prices.retrieve(planId);
+      logStep("Preço verificado com sucesso", { price: price.id, active: price.active });
+      
+      if (!price.active) {
+        logStep("Erro: Preço inativo");
+        throw new Error('Este plano está inativo no momento');
+      }
+    } catch (error) {
+      logStep("Erro ao verificar preço:", error);
+      throw new Error(`Preço não encontrado ou inválido: ${error.message}`);
+    }
 
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string;
@@ -113,24 +154,36 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get('origin') || 'http://localhost:3000';
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      line_items: [{ price: planId, quantity: 1 }],
-      mode: 'subscription',
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/assinatura`,
-    });
+    logStep("Origem da requisição", { origin });
 
-    logStep("Sessão de checkout criada", { sessionId: session.id, url: session.url });
+    // Criar sessão de checkout
+    try {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        line_items: [{ price: planId, quantity: 1 }],
+        mode: 'subscription',
+        success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/assinatura`,
+        allow_promotion_codes: true,
+      });
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      logStep("Sessão de checkout criada", { sessionId: session.id, url: session.url });
+
+      return new Response(JSON.stringify({ 
+        url: session.url,
+        sessionId: session.id 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (checkoutError) {
+      logStep("Erro ao criar sessão de checkout:", checkoutError);
+      throw new Error(`Erro ao criar sessão: ${checkoutError.message}`);
+    }
   } catch (error) {
     console.error("Erro no checkout:", error);
     return new Response(JSON.stringify({ 
       error: error.message,
-      details: "Verifique se a chave de API do Stripe está configurada corretamente."
+      details: "Verifique os logs para mais informações."
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
