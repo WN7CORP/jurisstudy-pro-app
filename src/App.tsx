@@ -10,6 +10,22 @@ import Profile from "./pages/Profile";
 import Biblioteca from "./pages/Biblioteca";
 import VadeMecum from "./pages/VadeMecum";
 import NotFound from "./pages/NotFound";
+import Resumos from "./pages/Resumos";
+import Flashcards from "./pages/Flashcards";
+import Questoes from "./pages/Questoes";
+import Simulados from "./pages/Simulados";
+import Ranking from "./pages/Ranking";
+import Cursos from "./pages/Cursos";
+import MapasMentais from "./pages/MapasMentais";
+import Dicionario from "./pages/Dicionario";
+import VideoAulas from "./pages/VideoAulas";
+import Jurisflix from "./pages/Jurisflix";
+import Jogos from "./pages/Jogos";
+import Noticias from "./pages/Noticias";
+import Bloger from "./pages/Bloger";
+import Peticionario from "./pages/Peticionario";
+import Desktop from "./pages/Desktop";
+import Assistente from "./pages/Assistente";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +41,22 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/biblioteca" element={<Biblioteca />} />
           <Route path="/vade-mecum" element={<VadeMecum />} />
+          <Route path="/resumos" element={<Resumos />} />
+          <Route path="/flashcards" element={<Flashcards />} />
+          <Route path="/questoes" element={<Questoes />} />
+          <Route path="/simulados" element={<Simulados />} />
+          <Route path="/ranking" element={<Ranking />} />
+          <Route path="/cursos" element={<Cursos />} />
+          <Route path="/mapas-mentais" element={<MapasMentais />} />
+          <Route path="/dicionario" element={<Dicionario />} />
+          <Route path="/video-aulas" element={<VideoAulas />} />
+          <Route path="/jurisflix" element={<Jurisflix />} />
+          <Route path="/jogos" element={<Jogos />} />
+          <Route path="/noticias" element={<Noticias />} />
+          <Route path="/bloger" element={<Bloger />} />
+          <Route path="/peticionario" element={<Peticionario />} />
+          <Route path="/desktop" element={<Desktop />} />
+          <Route path="/assistente" element={<Assistente />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
