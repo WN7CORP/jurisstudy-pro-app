@@ -1,11 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Check, X } from 'lucide-react';
+import { Check, X, Loader2 } from 'lucide-react';
 import type { SubscriptionPlan } from './PlanFeatures';
+
+/**
+ * Tabela de Funções - SubscriptionCard.tsx
+ * -------------------------------------------------------------------------------------------------
+ * | Função                   | Descrição                                                          |
+ * |--------------------------|-------------------------------------------------------------------|
+ * | SubscriptionCard         | Renderiza um card de plano de assinatura com informações sobre     |
+ * | (Componente)             | preço, recursos incluídos e botão para assinar.                    |
+ * |--------------------------|-------------------------------------------------------------------|
+ * | handleSubscribe          | Processa a solicitação de assinatura, chamando a função do Stripe  |
+ * | (Função)                 | para criar um checkout e redirecionando o usuário.                 |
+ * -------------------------------------------------------------------------------------------------
+ */
 
 interface SubscriptionCardProps {
   plan: SubscriptionPlan;
@@ -14,23 +27,47 @@ interface SubscriptionCardProps {
 
 export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async () => {
     try {
+      setLoading(true);
+      
+      // Verificar se o usuário está autenticado
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          variant: "destructive",
+          title: "Autenticação necessária",
+          description: "Você precisa estar logado para assinar um plano.",
+        });
+        setLoading(false);
+        return;
+      }
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId: plan.id }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao iniciar checkout:', error);
+        throw error;
+      }
+      
       if (data?.url) {
         window.location.href = data.url;
+      } else {
+        throw new Error('URL de checkout não recebida');
       }
     } catch (error) {
+      console.error('Erro completo:', error);
       toast({
         variant: "destructive",
         title: "Erro",
         description: "Não foi possível iniciar o processo de assinatura.",
       });
+      setLoading(false);
     }
   };
 
@@ -62,8 +99,20 @@ export function SubscriptionCard({ plan, isPopular }: SubscriptionCardProps) {
         </ul>
       </CardContent>
       <CardFooter>
-        <Button onClick={handleSubscribe} className="w-full" variant={isPopular ? "default" : "outline"}>
-          Assinar agora
+        <Button 
+          onClick={handleSubscribe} 
+          className="w-full" 
+          variant={isPopular ? "default" : "outline"}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Processando...
+            </>
+          ) : (
+            "Assinar agora"
+          )}
         </Button>
       </CardFooter>
     </Card>

@@ -29,6 +29,7 @@ import Assistente from "./pages/Assistente";
 import Explorar from "./pages/Explorar";
 import EstudoFlashcards from "./pages/EstudoFlashcards";
 import Assinatura from "./pages/Assinatura";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ function App() {
             <Route path="/assistente" element={<Assistente />} />
             <Route path="/explorar" element={<Explorar />} />
             <Route path="/assinatura" element={<Assinatura />} />
+            <Route path="/success" element={<PaymentSuccess />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
