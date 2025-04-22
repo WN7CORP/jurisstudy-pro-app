@@ -48,4 +48,8 @@ export interface PlaylistItem {
  * | getFlashcardsByTema | Busca flashcards por tema |
  * | getUserProgress | Busca o progresso do usuário em um flashcard |
  * | getPlaylistsByUser | Busca playlists criadas por um usuário |
+ * | fetchFlashcards | Busca todos os flashcards disponíveis |
+ * | handleSave | Salva uma nova playlist no banco de dados |
+ * | toggleFlashcard | Marca/desmarca um flashcard para a playlist |
+ * | getUniqueAreas | Obtém áreas únicas para os filtros |
  */

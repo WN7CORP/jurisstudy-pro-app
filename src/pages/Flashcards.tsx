@@ -33,11 +33,17 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { FlashCard, UserProgress } from "@/types/flashcards";
 
+/**
+ * Interface para a categoria de flashcards
+ */
 interface Category {
   area: string;
   count: number;
 }
 
+/**
+ * Interface para conjunto de flashcards
+ */
 interface FlashcardSet {
   tema: string;
   area: string;
@@ -46,6 +52,9 @@ interface FlashcardSet {
   progress: number;
 }
 
+/**
+ * Interface para playlists
+ */
 interface Playlist {
   id: string;
   name: string;
@@ -53,6 +62,17 @@ interface Playlist {
   flashcard_count: number;
 }
 
+/**
+ * Página principal de Flashcards
+ * 
+ * | Função                | Descrição                                            |
+ * |-----------------------|------------------------------------------------------|
+ * | fetchFlashcards       | Busca os flashcards disponíveis                      |
+ * | fetchUserProgress     | Obtém o progresso do usuário nos flashcards          |
+ * | fetchPlaylists        | Obtém as playlists criadas pelo usuário              |
+ * | handleCreateNewSet    | Cria um novo conjunto de flashcards                  |
+ * | handleFileUpload      | Processa o upload de materiais para criar flashcards |
+ */
 const Flashcards: React.FC = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -236,15 +256,22 @@ const Flashcards: React.FC = () => {
                 };
               }
 
+              const playlistId = playlist.id as string;
+
               const { count, error: countError } = await supabase
                 .from('playlist_flashcards' as any)
                 .select('*', { count: 'exact', head: true })
-                .eq('playlist_id', playlist.id);
+                .eq('playlist_id', playlistId);
                 
-              return {
-                ...playlist,
+              // Criar objeto de playlist com contagem
+              const playlistWithCount: Playlist = {
+                id: playlistId,
+                name: playlist.name as string,
+                description: playlist.description as string | null,
                 flashcard_count: countError ? 0 : (count || 0)
               };
+              
+              return playlistWithCount;
             })
           );
           

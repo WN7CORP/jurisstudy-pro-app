@@ -22,6 +22,16 @@ interface PlaylistCreatorProps {
   onClose: () => void;
 }
 
+/**
+ * Componente para criar playlists de flashcards
+ * 
+ * | Função               | Descrição                                    |
+ * |----------------------|----------------------------------------------|
+ * | handleSave           | Salva a playlist no banco de dados           |
+ * | toggleFlashcard      | Marca/desmarca um flashcard para a playlist  |
+ * | getUniqueAreas       | Obtém áreas únicas para os filtros           |
+ * | fetchFlashcards      | Busca flashcards disponíveis                 |
+ */
 const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
   const { toast } = useToast();
   const [name, setName] = useState("");
@@ -117,8 +127,10 @@ const PlaylistCreator: React.FC<PlaylistCreatorProps> = ({ onClose }) => {
         throw new Error("Resposta inválida do servidor ao criar playlist");
       }
       
+      const playlistId = playlistData.id as string;
+      
       const playlistItems: PlaylistItem[] = selectedCards.map((card, index) => ({
-        playlist_id: playlistData.id as string,
+        playlist_id: playlistId,
         flashcard_id: card.id,
         position: index
       }));
