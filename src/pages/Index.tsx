@@ -1,3 +1,4 @@
+
 import React from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,8 @@ import FeaturesCarousel from "@/components/home/FeaturesCarousel";
 import RecentActivity from "@/components/home/RecentActivity";
 import StudyProgress from "@/components/home/StudyProgress";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
+import { Link } from "react-router-dom";
+import { Crown } from "lucide-react";
 import { 
   quickStudyFeatures, 
   practiceFeatures, 
@@ -27,7 +30,7 @@ const Index = () => {
           <div className="xl:col-span-4 col-span-full grid md:grid-cols-4 grid-cols-1 sm:grid-cols-2 gap-6">
             <WelcomeBanner />
             
-            {/* Seções existentes */}
+            {/* Seção de CTA para assinatura */}
             <div className="md:col-span-4 col-span-full bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6 rounded-lg border border-primary/20 shadow-lg">
               <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="space-y-2 text-center md:text-left">
