@@ -519,6 +519,42 @@ export type Database = {
         }
         Relationships: []
       }
+      parametros_avancados: {
+        Row: {
+          categoria: string
+          created_at: string | null
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string | null
+          valor: string
+        }
+        Insert: {
+          categoria: string
+          created_at?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          tipo: string
+          updated_at?: string | null
+          valor: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string | null
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string | null
+          valor?: string
+        }
+        Relationships: []
+      }
       peticoes_modelo: {
         Row: {
           conteudo_exemplo: string | null
@@ -556,6 +592,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          level: number | null
+          study_progress: number | null
+          updated_at: string | null
+          user_type: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          level?: number | null
+          study_progress?: number | null
+          updated_at?: string | null
+          user_type?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          level?: number | null
+          study_progress?: number | null
+          updated_at?: string | null
+          user_type?: string | null
+        }
+        Relationships: []
       }
       questoes: {
         Row: {

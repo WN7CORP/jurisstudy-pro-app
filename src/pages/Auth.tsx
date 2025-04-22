@@ -4,21 +4,97 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselPrevious, 
+  CarouselNext 
+} from "@/components/ui/carousel";
 
 const Auth: React.FC = () => {
   const [formType, setFormType] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  
-  const toggleFormType = () => {
-    setFormType(formType === 'login' ? 'register' : 'login');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [fullName, setFullName] = useState<string>('');
+  const navigate = useNavigate();
+
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/dashboard'
+      }
+    });
+
+    if (error) {
+      toast.error('Erro ao fazer login com Google', {
+        description: error.message
+      });
+    }
   };
 
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
+  const handleEmailSignUp = async () => {
+    if (!fullName || !email || !password) {
+      toast.error('Preencha todos os campos');
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        }
+      }
+    });
+
+    if (error) {
+      toast.error('Erro ao criar conta', {
+        description: error.message
+      });
+    } else {
+      toast.success('Conta criada com sucesso! Verifique seu e-mail.');
+      setFormType('login');
+    }
   };
-  
+
+  const handleEmailSignIn = async () => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      toast.error('Erro ao fazer login', {
+        description: error.message
+      });
+    } else {
+      navigate('/');
+    }
+  };
+
+  const authFeatures = [
+    {
+      title: "Estude em qualquer lugar",
+      description: "Acesso ilimitado ao conteúdo jurídico"
+    },
+    {
+      title: "Simulados personalizados",
+      description: "Prepare-se para concursos e OAB"
+    },
+    {
+      title: "Inteligência Artificial",
+      description: "Assistente jurídico 24h por dia"
+    }
+  ];
+
   return (
     <div 
       className="min-h-screen bg-netflix-black flex items-center justify-center px-4 py-8"
@@ -50,12 +126,40 @@ const Auth: React.FC = () => {
           </p>
         </div>
         
+        {/* Carousel de Funcionalidades (Mobile) */}
+        <Carousel className="w-full mb-6 md:hidden">
+          <CarouselContent>
+            {authFeatures.map((feature, index) => (
+              <CarouselItem key={index} className="bg-netflix-darkGray/80 p-4 rounded-lg">
+                <h3 className="text-netflix-offWhite font-semibold">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground">{feature.description}</p>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-2 text-white" />
+          <CarouselNext className="right-2 text-white" />
+        </CarouselContent>
+        </Carousel>
+
+        {/* Funcionalidades Desktop */}
+        <div className="hidden md:grid grid-cols-3 gap-4 mb-6">
+          {authFeatures.map((feature, index) => (
+            <div key={index} className="bg-netflix-darkGray/80 p-4 rounded-lg">
+              <h3 className="text-netflix-offWhite font-semibold">{feature.title}</h3>
+              <p className="text-sm text-muted-foreground">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+        
         <div className="bg-netflix-darkGray/80 backdrop-blur-sm p-6 rounded-lg shadow-lg border border-netflix-darkGray">
           <h2 className="text-xl font-bold text-white mb-6">
             {formType === 'login' ? 'Entrar' : 'Criar Conta'}
           </h2>
           
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={(e) => {
+            e.preventDefault();
+            formType === 'login' ? handleEmailSignIn() : handleEmailSignUp();
+          }}>
             {formType === 'register' && (
               <div className="space-y-2">
                 <Label htmlFor="fullName" className="text-sm text-netflix-offWhite">
@@ -64,6 +168,8 @@ const Auth: React.FC = () => {
                 <Input 
                   id="fullName" 
                   placeholder="Digite seu nome completo" 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   className="bg-secondary/50 border-secondary/70"
                 />
               </div>
@@ -77,6 +183,8 @@ const Auth: React.FC = () => {
                 id="email" 
                 type="email" 
                 placeholder="Digite seu e-mail" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-secondary/50 border-secondary/70" 
               />
             </div>
@@ -90,11 +198,13 @@ const Auth: React.FC = () => {
                   id="password" 
                   type={showPassword ? "text" : "password"} 
                   placeholder="Digite sua senha" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="bg-secondary/50 border-secondary/70 pr-10" 
                 />
                 <button 
                   type="button" 
-                  onClick={toggleShowPassword} 
+                  onClick={() => setShowPassword(!showPassword)} 
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -136,6 +246,7 @@ const Auth: React.FC = () => {
             
             <Button 
               type="button" 
+              onClick={handleGoogleSignIn}
               variant="outline" 
               className="w-full bg-transparent border border-netflix-offWhite/30 text-netflix-offWhite hover:bg-secondary/20"
             >
@@ -166,7 +277,7 @@ const Auth: React.FC = () => {
               <>
                 Não tem uma conta?{' '}
                 <button 
-                  onClick={toggleFormType} 
+                  onClick={() => setFormType('register')} 
                   className="text-netflix-red hover:underline"
                 >
                   Criar agora
@@ -176,7 +287,7 @@ const Auth: React.FC = () => {
               <>
                 Já tem uma conta?{' '}
                 <button 
-                  onClick={toggleFormType} 
+                  onClick={() => setFormType('login')} 
                   className="text-netflix-red hover:underline"
                 >
                   Entrar
