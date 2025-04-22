@@ -25,6 +25,19 @@ export const JogoCard: React.FC<JogoCardProps> = ({ jogo, onJogar }) => {
     }
   };
 
+  const getTipoJogoLabel = (tipo: string) => {
+    switch (tipo) {
+      case 'forca':
+        return 'Jogo da Forca';
+      case 'caca_palavras':
+        return 'Caça-Palavras';
+      case 'memoria':
+        return 'Jogo da Memória';
+      default:
+        return tipo;
+    }
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
@@ -40,7 +53,7 @@ export const JogoCard: React.FC<JogoCardProps> = ({ jogo, onJogar }) => {
         <div className="flex flex-col gap-4">
           <div className="flex gap-2 text-sm text-muted-foreground">
             <Brain className="h-4 w-4" />
-            <span>Tipo: {jogo.tipo}</span>
+            <span>Tipo: {getTipoJogoLabel(jogo.tipo)}</span>
           </div>
           <Button 
             className="w-full bg-netflix-red hover:bg-netflix-red/90"

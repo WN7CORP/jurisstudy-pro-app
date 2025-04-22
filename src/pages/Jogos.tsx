@@ -7,6 +7,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { JogoJuridico } from "@/types/jogos";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Função para validar e converter os tipos de jogo
+const converterParaJogoJuridico = (jogo: any): JogoJuridico => {
+  // Garantir que o tipo do jogo é um dos valores aceitos
+  let tipoValidado: 'forca' | 'caca_palavras' | 'memoria';
+  
+  if (jogo.tipo === 'forca' || jogo.tipo === 'caca_palavras' || jogo.tipo === 'memoria') {
+    tipoValidado = jogo.tipo as 'forca' | 'caca_palavras' | 'memoria';
+  } else {
+    // Valor padrão se o tipo não for válido
+    console.warn(`Tipo de jogo inválido: ${jogo.tipo}. Usando 'forca' como padrão.`);
+    tipoValidado = 'forca';
+  }
+
+  // Validar nivel_dificuldade
+  let nivelValidado: 'facil' | 'medio' | 'dificil';
+  if (jogo.nivel_dificuldade === 'facil' || jogo.nivel_dificuldade === 'medio' || jogo.nivel_dificuldade === 'dificil') {
+    nivelValidado = jogo.nivel_dificuldade as 'facil' | 'medio' | 'dificil';
+  } else {
+    console.warn(`Nível de dificuldade inválido: ${jogo.nivel_dificuldade}. Usando 'medio' como padrão.`);
+    nivelValidado = 'medio';
+  }
+
+  return {
+    id: jogo.id,
+    tipo: tipoValidado,
+    nome: jogo.nome,
+    materia: jogo.materia,
+    tema: jogo.tema,
+    nivel_dificuldade: nivelValidado,
+    dados: jogo.dados,
+    created_at: jogo.created_at,
+    updated_at: jogo.updated_at
+  };
+};
 
 const Jogos: React.FC = () => {
   const [jogos, setJogos] = useState<JogoJuridico[]>([]);
@@ -28,7 +64,9 @@ const Jogos: React.FC = () => {
 
       if (error) throw error;
 
-      setJogos(data || []);
+      // Converter dados para o formato JogoJuridico
+      const jogosConvertidos = data ? data.map(jogo => converterParaJogoJuridico(jogo)) : [];
+      setJogos(jogosConvertidos);
     } catch (error) {
       console.error('Erro ao carregar jogos:', error);
       toast({
@@ -106,8 +144,16 @@ const Jogos: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="text-center py-8">
-              <p>Carregando jogos...</p>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3, 4, 5, 6].map((item) => (
+                <div key={item} className="flex flex-col space-y-3">
+                  <Skeleton className="h-[200px] w-full rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : jogosFiltrados.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

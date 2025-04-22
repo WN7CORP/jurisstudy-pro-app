@@ -20,3 +20,14 @@ export interface ProgressoJogo {
   ultima_jogada: string;
   dados_progresso: any;
 }
+
+// Tabela para referência de funções e métodos relacionados a jogos
+/**
+ * | Função                 | Descrição                                                    |
+ * |------------------------|------------------------------------------------------------|
+ * | validarTipoJogo        | Verifica se o tipo de jogo é válido                        |
+ * | converterParaJogoJuridico | Converte dados brutos para o formato JogoJuridico       |
+ * | salvarProgressoJogo    | Salva o progresso de um jogo no banco de dados             |
+ * | obterProgressoJogo     | Recupera o progresso de um usuário em um jogo específico   |
+ * | atualizarPontuacao     | Atualiza a pontuação de um usuário em um jogo              |
+ */
