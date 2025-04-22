@@ -9,7 +9,7 @@ import {
   Layers,
   HelpCircle,
   Award,
-  Graduation,
+  GraduationCap,  // Changed from 'Graduation'
   Map,
   Search,
   Video,
@@ -18,7 +18,7 @@ import {
   Newspaper,
   PenTool,
   FileText as FileIcon,
-  Desktop,
+  Computer,  // Changed from 'Desktop'
   Bot
 } from "lucide-react";
 
@@ -42,7 +42,7 @@ const sidebarItems: SidebarItem[] = [
   { icon: HelpCircle, label: "Questões", href: "/questoes" },
   { icon: FileText, label: "Simulados", href: "/simulados" },
   { icon: Award, label: "Ranking de Estudos", href: "/ranking" },
-  { icon: Graduation, label: "Cursos", href: "/cursos" },
+  { icon: GraduationCap, label: "Cursos", href: "/cursos" },  // Updated icon
   { icon: Map, label: "Mapas Mentais", href: "/mapas-mentais" },
   { icon: Search, label: "Dicionário Jurídico", href: "/dicionario" },
   { icon: Video, label: "Vídeo-aulas", href: "/video-aulas" },
@@ -51,7 +51,7 @@ const sidebarItems: SidebarItem[] = [
   { icon: Newspaper, label: "Notícias Jurídicas", href: "/noticias" },
   { icon: PenTool, label: "Bloger", href: "/bloger" },
   { icon: FileIcon, label: "Peticionário", href: "/peticionario" },
-  { icon: Desktop, label: "Desktop", href: "/desktop", comingSoon: true },
+  { icon: Computer, label: "Desktop", href: "/desktop", comingSoon: true },  // Updated icon
   { icon: Bot, label: "Assistente", href: "/assistente" },
 ];
 
