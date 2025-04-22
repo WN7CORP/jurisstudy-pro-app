@@ -9,18 +9,10 @@ import {
 } from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, LucideIcon } from "lucide-react";
+import { Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-interface Feature {
-  id: string;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  href: string;
-  isFavorite?: boolean;
-}
+import { Feature } from "./HomeFeatures";
 
 interface FeaturesCarouselProps {
   features: Feature[];

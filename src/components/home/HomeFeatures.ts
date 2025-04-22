@@ -70,3 +70,5 @@ export const practiceFeatures: Feature[] = [
     href: "/assistente"
   }
 ];
+
+export type { Feature };
