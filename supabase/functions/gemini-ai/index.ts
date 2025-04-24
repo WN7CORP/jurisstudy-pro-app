@@ -1,6 +1,19 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+/**
+ * Tabela de Funções - gemini-ai/index.ts
+ * -------------------------------------------------------------------------------------------------
+ * | Função                  | Descrição                                                           |
+ * |-------------------------|---------------------------------------------------------------------|
+ * | serve                   | Função principal que processa requisições para o Gemini AI          |
+ * | buildPrompt             | Constrói o prompt completo com instruções de sistema e histórico    |
+ * | getDefaultSystemPrompt  | Retorna o prompt de sistema padrão ou específico para um módulo     |
+ * | generateErrorResponse   | Gera uma resposta padronizada de erro                               |
+ * | callGeminiAPI           | Faz a chamada para a API do Gemini Pro                              |
+ * -------------------------------------------------------------------------------------------------
+ */
+
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || '';
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
@@ -9,37 +22,34 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    if (!GEMINI_API_KEY) {
-      throw new Error("API key for Gemini is not set.");
+// Função para gerar uma resposta de erro padronizada
+function generateErrorResponse(message: string, status: number = 500) {
+  console.error("Erro na função gemini-ai:", message);
+  
+  return new Response(
+    JSON.stringify({ error: message }),
+    { 
+      status: status, 
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     }
+  );
+}
 
-    const { messages, systemPrompt, module } = await req.json();
+// Função para chamar a API do Gemini
+async function callGeminiAPI(prompt: string) {
+  try {
+    console.log("Chamando API Gemini com prompt:", prompt.substring(0, 100) + "...");
     
-    // Build the request for Gemini API
-    const geminiMessages = [
-      {
-        role: "user",
-        parts: [
-          {
-            text: buildPrompt(systemPrompt || getDefaultSystemPrompt(module), messages)
-          }
-        ]
-      }
-    ];
+    // Configuração da requisição para a API Gemini
+    const geminiMessages = [{
+      role: "user",
+      parts: [{ text: prompt }]
+    }];
 
-    // Make request to Gemini API
+    // Fazer requisição para a API Gemini
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: geminiMessages,
         generationConfig: {
@@ -47,40 +57,32 @@ serve(async (req) => {
           topK: 40,
           topP: 0.95,
           maxOutputTokens: 2048,
-        }
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_ONLY_HIGH"
+          }
+        ]
       })
     });
 
     const data = await response.json();
     
     if (!response.ok) {
-      console.error("Gemini API error:", data);
-      throw new Error(`Gemini API error: ${data.error?.message || "Unknown error"}`);
+      console.error("Erro na resposta da API Gemini:", data);
+      throw new Error(`Erro na API Gemini: ${data.error?.message || "Erro desconhecido"}`);
     }
 
-    // Extract the response text
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    return new Response(
-      JSON.stringify({ 
-        response: generatedText 
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-  } catch (error) {
-    console.error("Error in gemini-ai function:", error);
+    console.log("Resposta da API Gemini:", generatedText.substring(0, 100) + "...");
     
-    return new Response(
-      JSON.stringify({ error: error.message || "Unknown error occurred" }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return generatedText;
+  } catch (error) {
+    console.error("Exceção ao chamar API Gemini:", error);
+    throw error;
   }
-});
+}
 
 // Helper function to build the complete prompt
 function buildPrompt(systemPrompt: string, messages: any[]): string {
@@ -88,7 +90,7 @@ function buildPrompt(systemPrompt: string, messages: any[]): string {
   let fullPrompt = systemPrompt + "\n\n";
   
   // Add the conversation history
-  messages.forEach((msg, index) => {
+  messages.forEach((msg) => {
     const role = msg.role === 'user' ? 'Usuário' : 'Assistente';
     fullPrompt += `${role}: ${msg.content}\n`;
   });
@@ -143,8 +145,49 @@ function getDefaultSystemPrompt(module?: string): string {
     'peticao': basePrompt + "\n\nSua tarefa é criar um modelo de petição jurídica sobre o tema solicitado. " +
                "A petição deve seguir a estrutura formal do processo civil brasileiro, incluindo: qualificação das partes, " +
                "endereçamento, nome da ação, fatos, fundamentos jurídicos, pedidos e fechamento. " +
-               "Use linguagem jurídica formal e mencione legislação aplicável."
+               "Use linguagem jurídica formal e mencione legislação aplicável.",
+               
+    'mapamental': basePrompt + "\n\nSua tarefa é criar uma estrutura hierárquica para um mapa mental jurídico sobre o tema solicitado. " +
+                 "Organize os conceitos em formato JSON, com um nó central e nós filhos em hierarquia. Para cada nó, " +
+                 "forneça um título conciso e uma breve descrição. O formato deve permitir a criação visual de um mapa mental.",
   };
   
   return modulePrompts[module] || basePrompt;
 }
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    if (!GEMINI_API_KEY) {
+      return generateErrorResponse("API key para Gemini não está configurada.");
+    }
+
+    // Parse the request body
+    const { messages, systemPrompt, module } = await req.json();
+    
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return generateErrorResponse("Mensagens vazias ou em formato inválido.", 400);
+    }
+    
+    // Build the complete prompt
+    const prompt = buildPrompt(
+      systemPrompt || getDefaultSystemPrompt(module), 
+      messages
+    );
+    
+    // Make the API call
+    const generatedText = await callGeminiAPI(prompt);
+
+    // Return the response
+    return new Response(
+      JSON.stringify({ response: generatedText }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (error) {
+    return generateErrorResponse(error.message || "Erro desconhecido ocorreu");
+  }
+});

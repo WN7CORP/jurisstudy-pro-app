@@ -14,11 +14,71 @@ const CAKTO_PLAN_IDs = {
   magistral: "3dnhw9q_355336"
 };
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+/**
+ * Tabela de Funções - create-cakto-checkout/index.ts
+ * -------------------------------------------------------------------------------------------------
+ * | Função                  | Descrição                                                           |
+ * |-------------------------|---------------------------------------------------------------------|
+ * | serve                   | Função principal que processa as requisições para criar uma         |
+ * |                         | sessão de checkout do Cakto                                         |
+ * | createCaktoCheckout     | Função que faz a requisição para a API do Cakto para criar um       |
+ * |                         | checkout baseado no plano selecionado                               |
+ * | handleRequest           | Função que processa a requisição HTTP, extrai dados do usuário      |
+ * |                         | e do plano selecionado                                              |
+ * -------------------------------------------------------------------------------------------------
+ */
+
+async function createCaktoCheckout(planId: string, userEmail: string, origin: string) {
+  console.log("Criando checkout para plano:", planId, "email:", userEmail);
+
+  const caktoApiKey = Deno.env.get('CAKTO_API_KEY');
+  if (!caktoApiKey) {
+    throw new Error('Chave da API Cakto não configurada');
   }
 
+  // URL correta da API do Cakto
+  const apiUrl = 'https://pay.cakto.com.br/api/v2/checkout/create';
+  
+  // Payload da requisição
+  const payload = {
+    plan_id: planId,
+    customer_email: userEmail,
+    success_url: `${origin}/success`,
+    cancel_url: `${origin}/assinatura`,
+  };
+
+  console.log("Enviando requisição para Cakto:", {
+    url: apiUrl,
+    payload: JSON.stringify(payload)
+  });
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${caktoApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const responseData = await response.json();
+    console.log("Resposta da API Cakto:", responseData);
+
+    if (!response.ok) {
+      const errorMessage = responseData.message || responseData.error || 'Erro ao criar checkout';
+      console.error("Erro da API Cakto:", errorMessage);
+      throw new Error(`Erro da API Cakto: ${errorMessage}`);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Erro ao fazer requisição para Cakto:", error);
+    throw error;
+  }
+}
+
+async function handleRequest(req: Request) {
   try {
     console.log("[CREATE-CAKTO-CHECKOUT] Iniciando checkout");
     
@@ -36,6 +96,7 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
     if (userError || !user) {
+      console.error("[CREATE-CAKTO-CHECKOUT] Erro de autenticação:", userError);
       throw new Error('Usuário não encontrado');
     }
 
@@ -49,34 +110,8 @@ serve(async (req) => {
     const caktoPlanId = CAKTO_PLAN_IDs[planId as keyof typeof CAKTO_PLAN_IDs];
     console.log("[CREATE-CAKTO-CHECKOUT] ID do plano Cakto:", caktoPlanId);
     
-    // Criar checkout na Cakto
-    const caktoApiKey = Deno.env.get('CAKTO_API_KEY');
-    if (!caktoApiKey) {
-      throw new Error('Chave da API Cakto não configurada');
-    }
-    
-    console.log("[CREATE-CAKTO-CHECKOUT] Chamando API da Cakto");
-    const response = await fetch('https://api.cakto.com.br/v1/checkout/create', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${caktoApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        plan_id: caktoPlanId,
-        customer_email: user.email,
-        success_url: `${req.headers.get('origin')}/success`,
-        cancel_url: `${req.headers.get('origin')}/assinatura`,
-      }),
-    });
-
-    const checkoutData = await response.json();
-    console.log("[CREATE-CAKTO-CHECKOUT] Resposta da API:", checkoutData);
-    
-    if (!response.ok) {
-      console.error("[CREATE-CAKTO-CHECKOUT] Erro da API:", checkoutData);
-      throw new Error(checkoutData.message || 'Erro ao criar checkout');
-    }
+    const origin = req.headers.get('origin') || 'https://seu-site.com';
+    const checkoutData = await createCaktoCheckout(caktoPlanId, user.email || '', origin);
 
     return new Response(JSON.stringify({ url: checkoutData.checkout_url }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -89,4 +124,12 @@ serve(async (req) => {
       status: 400,
     });
   }
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+  
+  return await handleRequest(req);
 });

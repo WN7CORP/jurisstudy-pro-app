@@ -19,6 +19,7 @@ import Cursos from "./pages/Cursos";
 import MapasMentais from "./pages/MapasMentais";
 import Dicionario from "./pages/Dicionario";
 import VideoAulas from "./pages/VideoAulas";
+import PlaylistDetails from "./pages/PlaylistDetails";
 import Jurisflix from "./pages/Jurisflix";
 import Jogos from "./pages/Jogos";
 import Noticias from "./pages/Noticias";
@@ -56,6 +57,7 @@ function App() {
             <Route path="/mapas-mentais" element={<MapasMentais />} />
             <Route path="/dicionario" element={<Dicionario />} />
             <Route path="/video-aulas" element={<VideoAulas />} />
+            <Route path="/video-aulas/:id" element={<PlaylistDetails />} />
             <Route path="/jurisflix" element={<Jurisflix />} />
             <Route path="/jogos" element={<Jogos />} />
             <Route path="/noticias" element={<Noticias />} />
