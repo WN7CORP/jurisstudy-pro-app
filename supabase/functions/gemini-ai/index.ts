@@ -11,10 +11,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
  * | getDefaultSystemPrompt  | Retorna o prompt de sistema padrão ou específico para um módulo     |
  * | generateErrorResponse   | Gera uma resposta padronizada de erro                               |
  * | callGeminiAPI           | Faz a chamada para a API do Gemini Pro                              |
+ * | parseGeminiResponse     | Processa a resposta da API conforme o formato desejado              |
  * -------------------------------------------------------------------------------------------------
  */
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || '';
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || 'AIzaSyBCPCIV9jUxa4sD6TrlR74q3KTKqDZjoT8';
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
 
 const corsHeaders = {
@@ -36,7 +37,7 @@ function generateErrorResponse(message: string, status: number = 500) {
 }
 
 // Função para chamar a API do Gemini
-async function callGeminiAPI(prompt: string) {
+async function callGeminiAPI(prompt: string, responseFormat?: string) {
   try {
     console.log("Chamando API Gemini com prompt:", prompt.substring(0, 100) + "...");
     
@@ -46,25 +47,32 @@ async function callGeminiAPI(prompt: string) {
       parts: [{ text: prompt }]
     }];
 
+    const requestBody: any = {
+      contents: geminiMessages,
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 8192,
+      },
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_ONLY_HIGH"
+        }
+      ]
+    };
+
+    // Adicionar formato de resposta se especificado
+    if (responseFormat && responseFormat === "json") {
+      requestBody.generationConfig.responseFormat = { type: "JSON" };
+    }
+
     // Fazer requisição para a API Gemini
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: geminiMessages,
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_ONLY_HIGH"
-          }
-        ]
-      })
+      body: JSON.stringify(requestBody)
     });
 
     const data = await response.json();
@@ -84,10 +92,48 @@ async function callGeminiAPI(prompt: string) {
   }
 }
 
+// Função para processar a resposta da API conforme o formato
+function parseGeminiResponse(text: string, format?: string) {
+  // Por padrão, retorna o texto como está
+  if (!format || format !== "json") return text;
+  
+  try {
+    // Verifica se já é um JSON válido
+    if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
+      return JSON.parse(text);
+    }
+    
+    // Tenta extrair JSON de um texto que pode conter comentários ou explicações
+    const jsonPattern = /```json\s*([\s\S]*?)\s*```|{[\s\S]*}/m;
+    const match = text.match(jsonPattern);
+    
+    if (match && match[1]) {
+      return JSON.parse(match[1]);
+    } else if (match) {
+      return JSON.parse(match[0]);
+    }
+    
+    // Se não encontrar um formato JSON válido, retorna o texto original
+    return text;
+  } catch (error) {
+    console.warn("Erro ao analisar resposta JSON:", error);
+    return text;
+  }
+}
+
 // Helper function to build the complete prompt
-function buildPrompt(systemPrompt: string, messages: any[]): string {
+function buildPrompt(systemPrompt: string, messages: any[], metadata?: any): string {
   // Start with the system prompt
   let fullPrompt = systemPrompt + "\n\n";
+  
+  // Add metadata context if available
+  if (metadata) {
+    fullPrompt += "Contexto adicional:\n";
+    for (const [key, value] of Object.entries(metadata)) {
+      fullPrompt += `${key}: ${value}\n`;
+    }
+    fullPrompt += "\n";
+  }
   
   // Add the conversation history
   messages.forEach((msg) => {
@@ -149,7 +195,19 @@ function getDefaultSystemPrompt(module?: string): string {
                
     'mapamental': basePrompt + "\n\nSua tarefa é criar uma estrutura hierárquica para um mapa mental jurídico sobre o tema solicitado. " +
                  "Organize os conceitos em formato JSON, com um nó central e nós filhos em hierarquia. Para cada nó, " +
-                 "forneça um título conciso e uma breve descrição. O formato deve permitir a criação visual de um mapa mental.",
+                 "forneça um título conciso e uma breve descrição. A estrutura deve ser:\n" +
+                 '{\n  "central": "Tema central",\n  "filhos": [\n    {\n      "nome": "Subtema 1",\n      "descricao": "Descrição breve",\n' +
+                 '      "filhos": [...]\n    },\n    ...\n  ]\n}',
+
+    'analise_jurisprudencia': basePrompt + "\n\nSua tarefa é analisar detalhadamente a decisão judicial fornecida. " +
+                             "Extraia os principais argumentos jurídicos, identifique os princípios legais aplicados, " +
+                             "contextualize a decisão no ordenamento jurídico brasileiro e avalie seu potencial impacto " +
+                             "em casos futuros. Organize sua análise em seções claras e bem estruturadas.",
+
+    'transcricao_video': basePrompt + "\n\nSua tarefa é analisar a transcrição do vídeo jurídico fornecida. " +
+                        "Crie um resumo conciso dos principais pontos abordados, identifique os conceitos-chave " +
+                        "e extraia uma lista de termos técnicos mencionados. Organize o resultado em formato estruturado " +
+                        "para facilitar o estudo e revisão do conteúdo."
   };
   
   return modulePrompts[module] || basePrompt;
@@ -167,7 +225,7 @@ serve(async (req) => {
     }
 
     // Parse the request body
-    const { messages, systemPrompt, module } = await req.json();
+    const { messages, systemPrompt, module, metadata, responseFormat } = await req.json();
     
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return generateErrorResponse("Mensagens vazias ou em formato inválido.", 400);
@@ -176,15 +234,21 @@ serve(async (req) => {
     // Build the complete prompt
     const prompt = buildPrompt(
       systemPrompt || getDefaultSystemPrompt(module), 
-      messages
+      messages,
+      metadata
     );
     
     // Make the API call
-    const generatedText = await callGeminiAPI(prompt);
+    const generatedText = await callGeminiAPI(prompt, responseFormat);
+
+    // Process the response if needed
+    const processedResponse = responseFormat === "json" 
+      ? parseGeminiResponse(generatedText, responseFormat) 
+      : generatedText;
 
     // Return the response
     return new Response(
-      JSON.stringify({ response: generatedText }),
+      JSON.stringify({ response: processedResponse }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

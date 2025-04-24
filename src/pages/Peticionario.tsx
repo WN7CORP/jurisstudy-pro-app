@@ -1,256 +1,171 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Loader2, Download, Copy } from "lucide-react";
-import { sendMessageToGemini } from "@/utils/geminiAI";
+import { PlusCircle, Search, Folder, FileText, Clock, CalendarDays } from "lucide-react";
+import { PeticaoGenerator } from "@/components/peticionario/PeticaoGenerator";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Tabela de Funções - Peticionario.tsx
  * -------------------------------------------------------------------------------------------------
  * | Função                  | Descrição                                                           |
  * |-------------------------|---------------------------------------------------------------------|
- * | Peticionario            | Componente principal da página de geração de petições jurídicas     |
- * | (Componente)            | que permite criar modelos de petições usando IA                     |
- * | PeticaoForm             | Formulário para inserção de detalhes da petição a ser gerada        |
- * | (Componente)            |                                                                     |
- * | PeticaoPreview          | Componente que exibe a visualização da petição gerada com opções    |
- * | (Componente)            | para download e cópia do conteúdo                                   |
- * | generatePeticao         | Função que gera uma petição jurídica usando IA com base nos dados   |
- * | (Função)                | fornecidos pelo usuário                                             |
+ * | Peticionario            | Componente principal da página do Peticionário                      |
+ * | (Componente)            | gerencia estados e navegação entre abas                             |
+ * | fetchPeticionModels     | Busca modelos de petições do banco de dados                         |
+ * | (Função)                | recuperando modelos públicos e do usuário atual                      |
+ * | savePeticao             | Salva uma petição gerada no armazenamento do usuário                |
+ * | (Função)                | e opcionalmente compartilha como modelo público                     |
+ * | handleSearch            | Filtra as petições com base na entrada de pesquisa                  |
+ * | (Função)                | por título, tipo ou conteúdo                                        |
  * -------------------------------------------------------------------------------------------------
  */
 
-// Componente para exibir a visualização da petição gerada
-const PeticaoPreview: React.FC<{ content: string; onReset: () => void }> = ({ content, onReset }) => {
-  // Função para copiar o conteúdo da petição para a área de transferência
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(content)
-      .then(() => {
-        toast.success("Petição copiada para a área de transferência");
-      })
-      .catch((err) => {
-        console.error("Erro ao copiar petição:", err);
-        toast.error("Erro ao copiar. Tente selecionar o texto manualmente.");
-      });
-  };
+interface PeticaoModel {
+  id: string;
+  tema: string;
+  estrutura: string;
+  conteudo_exemplo: string;
+  criado_por: string;
+  created_at: string;
+}
 
-  // Função para "baixar" o texto como um arquivo .txt
-  const downloadAsFile = () => {
-    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "peticao.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("Petição baixada como arquivo de texto");
-  };
+interface UserPeticao {
+  id: string;
+  tipo: string;
+  titulo: string;
+  conteudo: string;
+  data: string;
+  area?: string;
+}
 
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold">Petição Gerada</h3>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={copyToClipboard}>
-            <Copy className="h-4 w-4 mr-2" />
-            Copiar
-          </Button>
-          <Button variant="outline" size="sm" onClick={downloadAsFile}>
-            <Download className="h-4 w-4 mr-2" />
-            Baixar
-          </Button>
-        </div>
-      </div>
-      
-      <Card>
-        <CardContent className="p-4">
-          <pre className="whitespace-pre-wrap font-mono text-sm p-4 bg-muted/50 rounded-md max-h-[500px] overflow-y-auto">
-            {content}
-          </pre>
-        </CardContent>
-      </Card>
-      
-      <Button onClick={onReset} className="w-full">
-        Criar Nova Petição
-      </Button>
-    </div>
-  );
-};
-
-// Formulário para inserção de detalhes da petição
-const PeticaoForm: React.FC<{ onSubmit: (data: any) => Promise<void> }> = ({ onSubmit }) => {
-  const [tipo, setTipo] = useState("");
-  const [tema, setTema] = useState("");
-  const [detalhes, setDetalhes] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // Tipos de petições disponíveis
-  const tiposPeticao = [
-    { value: "inicial", label: "Petição Inicial" },
-    { value: "recurso", label: "Recurso" },
-    { value: "contestacao", label: "Contestação" },
-    { value: "habeas-corpus", label: "Habeas Corpus" },
-    { value: "mandado-seguranca", label: "Mandado de Segurança" },
-    { value: "embargo", label: "Embargos" }
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const Peticionario: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("gerar");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [peticoes, setPeticoes] = useState<UserPeticao[]>([]);
+  const [peticaoModels, setPeticaoModels] = useState<PeticaoModel[]>([]);
+  const [filteredPeticoes, setFilteredPeticoes] = useState<UserPeticao[]>([]);
+  const [filteredModels, setFilteredModels] = useState<PeticaoModel[]>([]);
+  const [selectedPeticao, setSelectedPeticao] = useState<UserPeticao | null>(null);
+  const [selectedModel, setSelectedModel] = useState<PeticaoModel | null>(null);
+  
+  // Carregar petições e modelos salvos
+  useEffect(() => {
+    // Recuperar petições do localStorage do usuário
+    const loadPeticoes = () => {
+      const savedPeticoes = localStorage.getItem('user_peticoes');
+      if (savedPeticoes) {
+        try {
+          setPeticoes(JSON.parse(savedPeticoes));
+        } catch (error) {
+          console.error("Erro ao carregar petições:", error);
+        }
+      }
+    };
     
-    if (!tipo || !tema) {
-      toast.error("Preencha pelo menos o tipo e o tema da petição");
+    loadPeticoes();
+    fetchPeticaoModels();
+  }, []);
+  
+  // Filtrar petições quando a busca mudar
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredPeticoes(peticoes);
+      setFilteredModels(peticaoModels);
       return;
     }
     
-    setLoading(true);
+    const query = searchQuery.toLowerCase();
     
+    // Filtrar petições do usuário
+    const matchingPeticoes = peticoes.filter(peticao => 
+      peticao.titulo.toLowerCase().includes(query) || 
+      peticao.tipo.toLowerCase().includes(query) || 
+      peticao.conteudo.toLowerCase().includes(query)
+    );
+    
+    // Filtrar modelos de petição
+    const matchingModels = peticaoModels.filter(model => 
+      model.tema.toLowerCase().includes(query) || 
+      model.conteudo_exemplo.toLowerCase().includes(query) || 
+      model.estrutura.toLowerCase().includes(query)
+    );
+    
+    setFilteredPeticoes(matchingPeticoes);
+    setFilteredModels(matchingModels);
+  }, [searchQuery, peticoes, peticaoModels]);
+
+  const fetchPeticaoModels = async () => {
     try {
-      await onSubmit({ tipo, tema, detalhes });
+      const { data, error } = await supabase
+        .from('peticoes_modelo')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        throw error;
+      }
+      
+      setPeticaoModels(data as PeticaoModel[]);
+      setFilteredModels(data as PeticaoModel[]);
     } catch (error) {
-      console.error("Erro ao gerar petição:", error);
-    } finally {
-      setLoading(false);
+      console.error("Erro ao buscar modelos de petições:", error);
+      toast.error("Erro ao carregar modelos de petições");
     }
   };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="tipo">Tipo de Petição</Label>
-        <Select value={tipo} onValueChange={setTipo} disabled={loading}>
-          <SelectTrigger id="tipo">
-            <SelectValue placeholder="Selecione o tipo de petição" />
-          </SelectTrigger>
-          <SelectContent>
-            {tiposPeticao.map((tipo) => (
-              <SelectItem key={tipo.value} value={tipo.value}>
-                {tipo.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="tema">Tema/Assunto</Label>
-        <Input
-          id="tema"
-          value={tema}
-          onChange={(e) => setTema(e.target.value)}
-          placeholder="Ex: Indenização por danos morais"
-          disabled={loading}
-        />
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="detalhes">Detalhes Adicionais (opcional)</Label>
-        <Textarea
-          id="detalhes"
-          value={detalhes}
-          onChange={(e) => setDetalhes(e.target.value)}
-          placeholder="Forneça detalhes específicos para personalizar a petição"
-          disabled={loading}
-          rows={5}
-        />
-      </div>
-      
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Gerando Petição...
-          </>
-        ) : (
-          <>
-            <FileText className="mr-2 h-4 w-4" />
-            Gerar Petição
-          </>
-        )}
-      </Button>
-    </form>
-  );
-};
-
-const Peticionario: React.FC = () => {
-  const [geracoes, setGeracoes] = useState<{id: string; data: any; content: string}[]>([]);
-  const [peticaoGerada, setPeticaoGerada] = useState<string | null>(null);
-
-  // Função para gerar a petição com IA
-  const generatePeticao = async (data: any) => {
-    const { tipo, tema, detalhes } = data;
+  
+  const savePeticao = (peticao: UserPeticao) => {
+    // Gerar ID único para a petição
+    const newPeticao = {
+      ...peticao,
+      id: `peticao-${Date.now()}`
+    };
     
-    try {
-      toast.loading("Gerando modelo de petição...");
-      
-      const tipoLabel = tiposPeticao.find(t => t.value === tipo)?.label || tipo;
-      
-      const prompt = `
-        Preciso que você crie um modelo de ${tipoLabel} sobre "${tema}".
-        
-        ${detalhes ? `Detalhes adicionais: ${detalhes}` : ''}
-        
-        A petição deve incluir:
-        1. Cabeçalho com espaço para inserção de informações do juízo
-        2. Qualificação das partes
-        3. Nome da ação
-        4. Fatos relevantes
-        5. Fundamentação jurídica apropriada com citações de leis e jurisprudência
-        6. Pedidos claros e diretos
-        7. Fechamento formal
-        
-        Mantenha um formato profissional e use linguagem jurídica apropriada.
-      `;
-      
-      const content = await sendMessageToGemini(
-        [{ role: 'user', content: prompt }],
-        'peticao'
-      );
-      
-      toast.dismiss();
-      toast.success("Petição gerada com sucesso");
-      
-      setPeticaoGerada(content);
-      
-      // Adicionar à lista de gerações
-      const newGeracao = {
-        id: Date.now().toString(),
-        data,
-        content
-      };
-      
-      setGeracoes([newGeracao, ...geracoes]);
-      
-    } catch (error) {
-      toast.dismiss();
-      toast.error("Erro ao gerar petição", {
-        description: "Tente novamente mais tarde."
-      });
-      console.error("Erro ao gerar petição:", error);
+    // Adicionar à lista e salvar no localStorage
+    const updatedPeticoes = [newPeticao, ...peticoes];
+    setPeticoes(updatedPeticoes);
+    localStorage.setItem('user_peticoes', JSON.stringify(updatedPeticoes));
+    
+    // Notificar o usuário
+    toast.success("Petição salva com sucesso!");
+    
+    // Redirecionar para a aba 'Minhas Petições'
+    setTimeout(() => {
+      setActiveTab("minhas");
+    }, 500);
+  };
+  
+  const deletePeticao = (id: string) => {
+    const updatedPeticoes = peticoes.filter(p => p.id !== id);
+    setPeticoes(updatedPeticoes);
+    localStorage.setItem('user_peticoes', JSON.stringify(updatedPeticoes));
+    
+    if (selectedPeticao?.id === id) {
+      setSelectedPeticao(null);
     }
+    
+    toast.success("Petição excluída com sucesso!");
   };
-
-  const resetForm = () => {
-    setPeticaoGerada(null);
+  
+  const viewPeticao = (peticao: UserPeticao) => {
+    setSelectedPeticao(peticao);
+    setSelectedModel(null);
   };
-
-  // Lista de tipos de petições para o rótulo correto
-  const tiposPeticao = [
-    { value: "inicial", label: "Petição Inicial" },
-    { value: "recurso", label: "Recurso" },
-    { value: "contestacao", label: "Contestação" },
-    { value: "habeas-corpus", label: "Habeas Corpus" },
-    { value: "mandado-seguranca", label: "Mandado de Segurança" },
-    { value: "embargo", label: "Embargos" }
-  ];
+  
+  const viewModel = (model: PeticaoModel) => {
+    setSelectedModel(model);
+    setSelectedPeticao(null);
+  };
+  
+  const closeViewer = () => {
+    setSelectedPeticao(null);
+    setSelectedModel(null);
+  };
 
   return (
     <Layout>
@@ -259,54 +174,191 @@ const Peticionario: React.FC = () => {
           <div className="mb-6">
             <h1 className="text-3xl font-bold mb-2">Peticionário</h1>
             <p className="text-muted-foreground">
-              Modelos e assistente para criação de petições
+              Crie e gerencie petições jurídicas com ajuda de IA
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gerador de Petições</CardTitle>
-                  <CardDescription>
-                    Crie modelos de petições jurídicas usando nosso assistente de IA
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!peticaoGerada ? (
-                    <PeticaoForm onSubmit={generatePeticao} />
-                  ) : (
-                    <PeticaoPreview content={peticaoGerada} onReset={resetForm} />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <div className="flex justify-between items-center">
+              <TabsList>
+                <TabsTrigger value="gerar">Gerar Petição</TabsTrigger>
+                <TabsTrigger value="minhas">Minhas Petições</TabsTrigger>
+                <TabsTrigger value="modelos">Modelos</TabsTrigger>
+              </TabsList>
+              
+              {activeTab !== "gerar" && (
+                <div className="flex items-center gap-2">
+                  <div className="relative max-w-xs">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input 
+                      placeholder="Buscar..." 
+                      className="pl-10 w-full"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  {activeTab === "minhas" && (
+                    <Button onClick={() => setActiveTab("gerar")}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Nova Petição
+                    </Button>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              )}
             </div>
             
-            <div className="lg:col-span-2">
-              <Card className="h-full">
-                <CardHeader>
-                  <CardTitle>Biblioteca de Modelos</CardTitle>
-                  <CardDescription>
-                    A biblioteca de petições estará disponível em breve. Por enquanto, 
-                    você pode gerar novos modelos usando nosso assistente de IA.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="h-[500px] flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Biblioteca de Modelos</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Essa funcionalidade estará disponível em breve. 
-                      Enquanto isso, use o gerador de petições para criar modelos personalizados.
-                    </p>
-                    <Button variant="outline" disabled>
-                      Ver Biblioteca (Em breve)
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+            <TabsContent value="gerar" className="mt-6">
+              {selectedPeticao || selectedModel ? (
+                <div className="space-y-4">
+                  <Button variant="outline" onClick={closeViewer}>
+                    Voltar para o gerador
+                  </Button>
+                  {selectedPeticao && (
+                    <div className="space-y-4">
+                      <h2 className="text-2xl font-semibold">{selectedPeticao.titulo}</h2>
+                      <div className="flex gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center">
+                          <FileText className="mr-1 h-4 w-4" />
+                          {selectedPeticao.tipo}
+                        </div>
+                        {selectedPeticao.area && (
+                          <div className="flex items-center">
+                            <Folder className="mr-1 h-4 w-4" />
+                            {selectedPeticao.area}
+                          </div>
+                        )}
+                        <div className="flex items-center">
+                          <CalendarDays className="mr-1 h-4 w-4" />
+                          {new Date(selectedPeticao.data).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="whitespace-pre-line bg-card p-6 border rounded-lg text-sm">
+                        {selectedPeticao.conteudo}
+                      </div>
+                    </div>
+                  )}
+                  {selectedModel && (
+                    <div className="space-y-4">
+                      <h2 className="text-2xl font-semibold">{selectedModel.tema}</h2>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Estrutura do Modelo</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="whitespace-pre-line text-sm">
+                            {selectedModel.estrutura}
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Exemplo de Conteúdo</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="whitespace-pre-line text-sm">
+                            {selectedModel.conteudo_exemplo}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <PeticaoGenerator onSave={savePeticao} />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="minhas" className="space-y-6 mt-6">
+              {filteredPeticoes.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPeticoes.map((peticao) => (
+                    <Card key={peticao.id} className="hover:bg-secondary/10 transition-colors">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between">
+                          <div>
+                            <CardTitle>{peticao.titulo}</CardTitle>
+                            <CardDescription>{peticao.tipo}</CardDescription>
+                          </div>
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {peticao.conteudo.substring(0, 150)}...
+                        </p>
+                      </CardContent>
+                      <CardFooter className="flex justify-between pt-0">
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="mr-1 h-3 w-3" />
+                          <time dateTime={peticao.data}>
+                            {new Date(peticao.data).toLocaleDateString()}
+                          </time>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => viewPeticao(peticao)}>
+                            Visualizar
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => deletePeticao(peticao.id)}>
+                            Excluir
+                          </Button>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Nenhuma petição encontrada</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {searchQuery ? "Nenhuma petição corresponde à sua busca." : "Você ainda não criou nenhuma petição."}
+                  </p>
+                  <Button onClick={() => setActiveTab("gerar")}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nova Petição
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="modelos" className="space-y-6 mt-6">
+              {filteredModels.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredModels.map((model) => (
+                    <Card key={model.id} className="hover:bg-secondary/10 transition-colors">
+                      <CardHeader className="pb-2">
+                        <CardTitle>{model.tema}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <p className="text-sm text-muted-foreground line-clamp-3">
+                          {model.estrutura.substring(0, 150)}...
+                        </p>
+                      </CardContent>
+                      <CardFooter className="flex justify-between pt-0">
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="mr-1 h-3 w-3" />
+                          <time dateTime={model.created_at}>
+                            {new Date(model.created_at).toLocaleDateString()}
+                          </time>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => viewModel(model)}>
+                          Visualizar
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Folder className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Nenhum modelo encontrado</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {searchQuery ? "Nenhum modelo corresponde à sua busca." : "Não há modelos de petição disponíveis."}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </Layout>

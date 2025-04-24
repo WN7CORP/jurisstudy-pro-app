@@ -1,210 +1,153 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from '@/components/ui/label';
-import { Loader2, Brain, Save, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Brain, Search, Grid, List } from "lucide-react";
 import { toast } from "sonner";
-import { sendMessageToGemini } from "@/utils/geminiAI";
+import { MapaMentalCreator } from "@/components/mapas-mentais/MapaMentalCreator";
+import { MapaMentalViewer } from "@/components/mapas-mentais/MapaMentalViewer";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Tabela de Funções - MapasMentais.tsx
  * -------------------------------------------------------------------------------------------------
  * | Função                  | Descrição                                                           |
  * |-------------------------|---------------------------------------------------------------------|
- * | MapasMentais            | Componente principal da página de mapas mentais que permite         |
- * | (Componente)            | criar e visualizar mapas mentais jurídicos                          |
- * | generateMindMap         | Função que gera um mapa mental usando IA com base no tema           |
- * | (Função)                | jurídico fornecido                                                  |
- * | MindMapCreator          | Componente para criação de novos mapas mentais com suporte          |
- * | (Componente)            | a geração por IA                                                    |
- * | MindMapCard             | Componente que exibe um card para um mapa mental existente          |
- * | (Componente)            |                                                                     |
+ * | MapasMentais            | Componente principal da página de mapas mentais                     |
+ * | (Componente)            | gerencia estados, visualização e criação de mapas mentais           |
+ * | fetchMindMaps           | Busca mapas mentais do banco de dados                               |
+ * | (Função)                | filtrando por usuário atual e mapas públicos                        |
+ * | handleCreateMap         | Trata a criação de um novo mapa mental                              |
+ * | (Função)                | adicionando ao estado local e alternando para visualização          |
+ * | handleSelectMap         | Seleciona um mapa mental para visualização                          |
+ * | (Função)                | definindo-o como o mapa atual e alternando para visualização        |
+ * | filterMaps              | Filtra mapas mentais com base na busca                              |
+ * | (Função)                | para localizar mapas por título ou área                             |
  * -------------------------------------------------------------------------------------------------
  */
 
-// Componente de card para exibir mapas mentais
-const MindMapCard: React.FC<{ 
-  title: string; 
-  area: string; 
-  onClick: () => void 
-}> = ({ title, area, onClick }) => {
-  return (
-    <Card className="cursor-pointer hover:bg-secondary/50 transition-colors" onClick={onClick}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{title}</CardTitle>
-        <CardDescription>{area}</CardDescription>
-      </CardHeader>
-      <CardContent className="pt-0 flex justify-center">
-        <Brain className="h-20 w-20 text-muted-foreground" />
-      </CardContent>
-      <CardFooter>
-        <Button variant="outline" className="w-full" onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}>
-          Visualizar
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
+interface MapNode {
+  nome: string;
+  descricao?: string;
+  filhos?: MapNode[];
+}
 
-// Componente para criar novos mapas mentais
-const MindMapCreator: React.FC<{ onCreateMap: (data: any) => void }> = ({ onCreateMap }) => {
-  const [title, setTitle] = useState("");
-  const [area, setArea] = useState("");
-  const [topic, setTopic] = useState("");
-  const [loading, setLoading] = useState(false);
+interface MapaMentalData {
+  id: string;
+  titulo: string;
+  area_direito: string;
+  estrutura: {
+    central: string;
+    filhos: MapNode[];
+  };
+  criado_por: string;
+  criado_por_ia: boolean;
+  publico: boolean;
+  created_at: string;
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!title || !area || !topic) {
-      toast.error("Preencha todos os campos");
-      return;
-    }
+const MapasMentais: React.FC = () => {
+  const [mapas, setMapas] = useState<MapaMentalData[]>([]);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMap, setSelectedMap] = useState<MapaMentalData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("navegar");
 
+  useEffect(() => {
+    fetchMindMaps();
+  }, []);
+
+  const fetchMindMaps = async () => {
     setLoading(true);
-
     try {
-      // Gerar conteúdo usando IA
-      const prompt = `Crie um mapa mental detalhado sobre o tema jurídico: "${topic}" na área de ${area}.`;
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
       
-      toast.loading("Gerando mapa mental com IA...");
+      let query = supabase
+        .from('mapas_mentais')
+        .select('*');
       
-      const content = await sendMessageToGemini(
-        [{ role: 'user', content: prompt }],
-        'mapamental'
-      );
+      if (userId) {
+        // Buscar mapas do usuário + mapas públicos
+        query = query.or(`criado_por.eq.${userId},publico.eq.true`);
+      } else {
+        // Apenas mapas públicos se não estiver logado
+        query = query.eq('publico', true);
+      }
       
-      toast.dismiss();
-      toast.success("Mapa mental gerado com sucesso!");
+      const { data, error } = await query.order('created_at', { ascending: false });
       
-      onCreateMap({
-        title,
-        area,
-        content,
-        createdBy: 'ai'
-      });
+      if (error) {
+        throw error;
+      }
       
-      // Limpar formulário
-      setTitle("");
-      setArea("");
-      setTopic("");
+      if (data) {
+        setMapas(data as MapaMentalData[]);
+      }
     } catch (error) {
-      console.error("Erro ao gerar mapa mental:", error);
-      toast.error("Erro ao gerar mapa mental", {
-        description: "Tente novamente mais tarde."
-      });
+      console.error("Erro ao buscar mapas mentais:", error);
+      toast.error("Erro ao carregar mapas mentais");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Criar Novo Mapa Mental</CardTitle>
-        <CardDescription>
-          Gere mapas mentais para temas jurídicos usando nossa IA especializada
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Título do Mapa Mental</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Princípios do Direito Constitucional"
-              disabled={loading}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="area">Área do Direito</Label>
-            <Input
-              id="area"
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              placeholder="Ex: Direito Constitucional"
-              disabled={loading}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="topic">Tema Específico</Label>
-            <Textarea
-              id="topic"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="Descreva o tema específico que deseja mapear"
-              disabled={loading}
-              rows={3}
-            />
-          </div>
-          
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Gerando Mapa Mental...
-              </>
-            ) : (
-              <>
-                <Brain className="mr-2 h-4 w-4" />
-                Gerar com IA
-              </>
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
-};
-
-const MapasMentais: React.FC = () => {
-  // Mapas mentais de exemplo (até implementar banco de dados)
-  const [maps, setMaps] = useState([
-    {
-      id: '1',
-      title: 'Princípios Constitucionais',
-      area: 'Direito Constitucional',
-      content: 'Conteúdo do mapa mental sobre Princípios Constitucionais'
-    },
-    {
-      id: '2',
-      title: 'Tipos de Contratos',
-      area: 'Direito Civil',
-      content: 'Conteúdo do mapa mental sobre Tipos de Contratos'
-    }
-  ]);
-
   const handleCreateMap = (mapData: any) => {
+    // Quando um novo mapa é criado via IA, adicionamos à lista
     const newMap = {
-      id: Date.now().toString(),
-      ...mapData
+      id: Date.now().toString(), // Temporário até ser salvo no banco
+      titulo: mapData.title,
+      area_direito: mapData.area,
+      estrutura: mapData.content,
+      criado_por: 'local',
+      criado_por_ia: true,
+      publico: false,
+      created_at: new Date().toISOString()
     };
     
-    setMaps([newMap, ...maps]);
-    toast.success("Mapa mental criado com sucesso");
+    setMapas(prevMapas => [newMap, ...prevMapas]);
+    setSelectedMap(newMap);
+    setActiveTab("visualizar");
   };
 
-  const handleOpenMap = (id: string) => {
-    const map = maps.find(m => m.id === id);
-    if (map) {
-      // Apenas exibir uma mensagem por enquanto
-      // Futuramente implementar visualizador de mapa mental
-      toast.info(`Visualizando mapa: ${map.title}`, {
-        description: "Visualizador de mapas mentais será implementado em breve."
-      });
-    }
+  const handleSelectMap = (map: MapaMentalData) => {
+    setSelectedMap(map);
+    setActiveTab("visualizar");
   };
+
+  const filteredMaps = mapas.filter(map => {
+    if (!searchQuery) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      map.titulo.toLowerCase().includes(query) ||
+      map.area_direito.toLowerCase().includes(query)
+    );
+  });
+
+  const renderMapCard = (map: MapaMentalData) => (
+    <Card 
+      key={map.id} 
+      className="cursor-pointer hover:bg-secondary/50 transition-colors"
+      onClick={() => handleSelectMap(map)}
+    >
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">{map.titulo}</CardTitle>
+        <CardDescription>{map.area_direito}</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-0 flex justify-center">
+        <Brain className="h-16 w-16 text-muted-foreground" />
+      </CardContent>
+      <CardFooter className="flex justify-between text-xs text-muted-foreground">
+        <span>{new Date(map.created_at).toLocaleDateString()}</span>
+        <span>{map.publico ? "Público" : "Privado"}</span>
+      </CardFooter>
+    </Card>
+  );
 
   return (
     <Layout>
@@ -217,20 +160,107 @@ const MapasMentais: React.FC = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Criador de mapas mentais */}
-            <MindMapCreator onCreateMap={handleCreateMap} />
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="flex justify-between items-center mb-6">
+              <TabsList>
+                <TabsTrigger value="navegar">Navegar</TabsTrigger>
+                <TabsTrigger value="criar">Criar Mapa</TabsTrigger>
+                {selectedMap && (
+                  <TabsTrigger value="visualizar">Visualizar</TabsTrigger>
+                )}
+              </TabsList>
+              
+              {activeTab === "navegar" && (
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={viewMode === "grid" ? "secondary" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "secondary" : "ghost"}
+                    size="icon"
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
             
-            {/* Mapas existentes */}
-            {maps.map((map) => (
-              <MindMapCard
-                key={map.id}
-                title={map.title}
-                area={map.area}
-                onClick={() => handleOpenMap(map.id)}
-              />
-            ))}
-          </div>
+            <TabsContent value="navegar" className="space-y-4">
+              <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input 
+                  placeholder="Buscar mapas mentais..." 
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              {loading ? (
+                <div className="text-center py-12">
+                  <p>Carregando mapas mentais...</p>
+                </div>
+              ) : filteredMaps.length > 0 ? (
+                <div className={viewMode === "grid" 
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+                  : "flex flex-col gap-4"
+                }>
+                  {filteredMaps.map(map => 
+                    viewMode === "grid" ? renderMapCard(map) : (
+                      <Card 
+                        key={map.id} 
+                        className="cursor-pointer hover:bg-secondary/50 transition-colors"
+                        onClick={() => handleSelectMap(map)}
+                      >
+                        <CardHeader className="py-3">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{map.titulo}</CardTitle>
+                              <CardDescription>{map.area_direito}</CardDescription>
+                            </div>
+                            <Brain className="h-10 w-10 text-muted-foreground" />
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    )
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">
+                    {searchQuery ? "Nenhum mapa mental encontrado para sua busca" : "Não há mapas mentais disponíveis"}
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setActiveTab("criar")} 
+                    className="mt-4"
+                  >
+                    <Brain className="mr-2 h-4 w-4" />
+                    Criar seu primeiro mapa mental
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="criar">
+              <MapaMentalCreator onCreateMap={handleCreateMap} />
+            </TabsContent>
+            
+            <TabsContent value="visualizar">
+              {selectedMap && (
+                <MapaMentalViewer 
+                  data={selectedMap.estrutura} 
+                  title={selectedMap.titulo} 
+                  area={selectedMap.area_direito} 
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </Layout>

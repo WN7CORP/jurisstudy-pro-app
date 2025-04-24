@@ -8,8 +8,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
  * -------------------------------------------------------------------------------------------------
  * | Função                  | Descrição                                                           |
  * |-------------------------|---------------------------------------------------------------------|
- * | CategoryList            | Componente que renderiza uma lista de categorias de vídeo-aulas     |
- * | (Componente)            | com suporte a seleção e filtragem                                   |
+ * | CategoryList            | Componente que renderiza uma lista horizontal de categorias de      |
+ * | (Componente)            | vídeo-aulas com suporte a seleção e filtragem                       |
  * -------------------------------------------------------------------------------------------------
  */
 
