@@ -456,6 +456,48 @@ export type Database = {
         }
         Relationships: []
       }
+      jurisflix_conteudos: {
+        Row: {
+          ano: number
+          created_at: string
+          id: string
+          onde_assistir: string[] | null
+          poster_url: string | null
+          rating: number | null
+          sinopse: string
+          temas_juridicos: string[] | null
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ano: number
+          created_at?: string
+          id?: string
+          onde_assistir?: string[] | null
+          poster_url?: string | null
+          rating?: number | null
+          sinopse: string
+          temas_juridicos?: string[] | null
+          tipo: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ano?: number
+          created_at?: string
+          id?: string
+          onde_assistir?: string[] | null
+          poster_url?: string | null
+          rating?: number | null
+          sinopse?: string
+          temas_juridicos?: string[] | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       jurisprudencias: {
         Row: {
           anotacoes: string | null
@@ -597,6 +639,39 @@ export type Database = {
           titulo?: string
           updated_at?: string | null
           url_pdf?: string | null
+        }
+        Relationships: []
+      }
+      mapas_mentais: {
+        Row: {
+          area_direito: string
+          created_at: string
+          criado_por: string | null
+          criado_por_ia: boolean | null
+          estrutura: Json
+          id: string
+          publico: boolean | null
+          titulo: string
+        }
+        Insert: {
+          area_direito: string
+          created_at?: string
+          criado_por?: string | null
+          criado_por_ia?: boolean | null
+          estrutura: Json
+          id?: string
+          publico?: boolean | null
+          titulo: string
+        }
+        Update: {
+          area_direito?: string
+          created_at?: string
+          criado_por?: string | null
+          criado_por_ia?: boolean | null
+          estrutura?: Json
+          id?: string
+          publico?: boolean | null
+          titulo?: string
         }
         Relationships: []
       }
@@ -1300,6 +1375,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      video_transcricoes: {
+        Row: {
+          created_at: string
+          duracao: number | null
+          id: string
+          palavras_chave: string[] | null
+          pontos_chave: Json | null
+          resumo_ai: string | null
+          transcricao: string
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          duracao?: number | null
+          id?: string
+          palavras_chave?: string[] | null
+          pontos_chave?: Json | null
+          resumo_ai?: string | null
+          transcricao: string
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          duracao?: number | null
+          id?: string
+          palavras_chave?: string[] | null
+          pontos_chave?: Json | null
+          resumo_ai?: string | null
+          transcricao?: string
+          video_id?: string
+        }
+        Relationships: []
       }
       videos: {
         Row: {

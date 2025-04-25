@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -39,6 +38,7 @@ interface Video {
   thumbnail: string | null;
   duracao: string | null;
   ordem: number;
+  playlist_id: string;
 }
 
 interface Playlist {
@@ -60,11 +60,9 @@ const PlaylistDetails: React.FC = () => {
   const [transcription, setTranscription] = useState<VideoTranscription | null>(null);
   const [loadingTranscription, setLoadingTranscription] = useState(false);
 
-  // Buscar detalhes da playlist e vídeos
   const { data, isLoading, error } = useQuery({
     queryKey: ['playlist', id],
     queryFn: async () => {
-      // Buscar informações da playlist
       const { data: playlist, error: playlistError } = await supabase
         .from('video_aulas_playlists')
         .select(`
@@ -76,7 +74,6 @@ const PlaylistDetails: React.FC = () => {
 
       if (playlistError) throw playlistError;
 
-      // Buscar vídeos da playlist
       const { data: videos, error: videosError } = await supabase
         .from('video_aulas_videos')
         .select('*')
@@ -90,7 +87,6 @@ const PlaylistDetails: React.FC = () => {
     enabled: !!id
   });
 
-  // Definir o primeiro vídeo como atual quando os dados são carregados
   useEffect(() => {
     if (data?.videos && data.videos.length > 0 && !currentVideo) {
       setCurrentVideo(data.videos[0]);
@@ -98,11 +94,9 @@ const PlaylistDetails: React.FC = () => {
     }
   }, [data]);
 
-  // Buscar ou gerar transcrição para o vídeo selecionado
   const fetchVideoTranscription = async (videoId: string) => {
     setLoadingTranscription(true);
     try {
-      // Primeiro, tenta buscar uma transcrição existente usando .maybeSingle() em vez de .single()
       const { data: existingTranscription, error } = await supabase
         .from('video_transcricoes')
         .select('*')
@@ -110,16 +104,12 @@ const PlaylistDetails: React.FC = () => {
         .maybeSingle();
 
       if (existingTranscription) {
-        // Precisamos converter explicitamente para o tipo VideoTranscription
         setTranscription(existingTranscription as unknown as VideoTranscription);
         return;
       }
 
-      // Se não existe, gera uma simulada para demonstração
-      // Em um caso real, aqui faria transcrição do áudio usando Whisper API ou similar
       toast.loading("Gerando transcrição do vídeo...");
       
-      // Texto simulado de transcrição para demonstração
       const mockTranscription = 
         "Bem-vindos à nossa aula sobre Princípios Constitucionais. Hoje vamos abordar os fundamentos que regem nossa Constituição Federal de 1988. " +
         "Começaremos falando sobre o princípio da dignidade da pessoa humana, que é o alicerce de todo o ordenamento jurídico brasileiro. " +
@@ -130,10 +120,8 @@ const PlaylistDetails: React.FC = () => {
         "Este princípio é a base do Estado de Direito e protege os cidadãos contra arbitrariedades. " +
         "Por fim, falaremos sobre o princípio do devido processo legal, que garante a todos o direito a um processo justo, com ampla defesa e contraditório.";
 
-      // Usar a IA para gerar análise da transcrição
       const aiAnalysis = await analyzeLectureTranscription(mockTranscription);
       
-      // Criar objeto de transcrição
       const newTranscription: VideoTranscription = {
         id: `temp-${Date.now()}`,
         video_id: videoId,
@@ -167,9 +155,6 @@ const PlaylistDetails: React.FC = () => {
       
       setTranscription(newTranscription);
       
-      // Em um ambiente de produção, salvaria no banco de dados
-      // Aqui simulamos, mas não inserimos realmente
-      
       toast.dismiss();
       toast.success("Transcrição gerada com sucesso!");
       
@@ -181,17 +166,14 @@ const PlaylistDetails: React.FC = () => {
     }
   };
 
-  // Selecionar um vídeo da lista
   const handleVideoSelect = (video: Video) => {
     setCurrentVideo(video);
     fetchVideoTranscription(video.id);
     setActiveTab("video");
     
-    // Scroll para o topo da página
     window.scrollTo(0, 0);
   };
 
-  // Navegar para o próximo vídeo na sequência
   const handleNextVideo = () => {
     if (!data?.videos || !currentVideo) return;
     
@@ -201,7 +183,6 @@ const PlaylistDetails: React.FC = () => {
     }
   };
 
-  // Renderizar o conteúdo principal
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -227,7 +208,6 @@ const PlaylistDetails: React.FC = () => {
 
     return (
       <div className="space-y-6">
-        {/* Cabeçalho */}
         <div className="flex flex-col md:flex-row justify-between gap-4">
           <div>
             <Button 
@@ -255,7 +235,6 @@ const PlaylistDetails: React.FC = () => {
           </div>
         </div>
         
-        {/* Conteúdo principal - vídeo e tabs */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             {currentVideo && (
@@ -349,7 +328,6 @@ const PlaylistDetails: React.FC = () => {
             )}
           </div>
           
-          {/* Lista de vídeos da playlist */}
           <div>
             <div className="bg-card rounded-lg border">
               <div className="p-4 border-b">

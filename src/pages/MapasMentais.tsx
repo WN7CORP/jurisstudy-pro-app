@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -45,10 +44,10 @@ interface MapaMentalData {
 }
 
 const MapasMentais: React.FC = () => {
-  const [mapas, setMapas] = useState<MapaMentalData[]>([]);
+  const [mapas, setMapas] = useState<MapaMental[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedMap, setSelectedMap] = useState<MapaMentalData | null>(null);
+  const [selectedMap, setSelectedMap] = useState<MapaMental | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("navegar");
 
@@ -67,11 +66,9 @@ const MapasMentais: React.FC = () => {
         .select('*');
       
       if (userId) {
-        // Buscar mapas do usuário + mapas públicos usando string template para construir a query
         const orCondition = `criado_por.eq.${userId},publico.eq.true`;
         query = query.or(orCondition);
       } else {
-        // Apenas mapas públicos se não estiver logado
         query = query.eq('publico', true);
       }
       
@@ -82,9 +79,7 @@ const MapasMentais: React.FC = () => {
       }
       
       if (data) {
-        // Conversão explícita para o tipo MapaMentalData
-        const typedData = data as unknown as MapaMentalData[];
-        setMapas(typedData);
+        setMapas(data as MapaMental[]);
       }
     } catch (error) {
       console.error("Erro ao buscar mapas mentais:", error);
@@ -95,9 +90,8 @@ const MapasMentais: React.FC = () => {
   };
 
   const handleCreateMap = (mapData: any) => {
-    // Quando um novo mapa é criado via IA, adicionamos à lista
     const newMap: MapaMentalData = {
-      id: Date.now().toString(), // Temporário até ser salvo no banco
+      id: Date.now().toString(),
       titulo: mapData.title,
       area_direito: mapData.area,
       estrutura: mapData.content,
@@ -112,7 +106,7 @@ const MapasMentais: React.FC = () => {
     setActiveTab("visualizar");
   };
 
-  const handleSelectMap = (map: MapaMentalData) => {
+  const handleSelectMap = (map: MapaMental) => {
     setSelectedMap(map);
     setActiveTab("visualizar");
   };

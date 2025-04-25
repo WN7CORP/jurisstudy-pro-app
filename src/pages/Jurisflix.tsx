@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Film, Award, PlayCircle } from "lucide-react";
-import { JurisflixCard, JurisflixContentProps } from "@/components/jurisflix/JurisflixCard";
+import { JurisflixCard } from "@/components/jurisflix/JurisflixCard";
 import { Carousel, CarouselContent, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -37,7 +36,7 @@ import { JurisflixContent } from "@/types/supabase";
 const Jurisflix: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("all");
-  const [filteredContent, setFilteredContent] = useState<JurisflixContentProps[]>([]);
+  const [filteredContent, setFilteredContent] = useState<JurisflixContent[]>([]);
   const [filterActive, setFilterActive] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<string | null>(null);
   const [aiRecommendationTheme, setAiRecommendationTheme] = useState("");
@@ -50,7 +49,6 @@ const Jurisflix: React.FC = () => {
   const [themeFilters, setThemeFilters] = useState<string[]>([]);
   const [allThemes, setAllThemes] = useState<string[]>([]);
   
-  // Fetch Jurisflix content from database
   const { data: jurisflixContent, isLoading, error } = useQuery({
     queryKey: ['jurisflix-content'],
     queryFn: async () => {
@@ -63,10 +61,8 @@ const Jurisflix: React.FC = () => {
         throw error;
       }
       
-      // Extract all unique themes
       if (data) {
-        // Tratar os dados como JurisflixContent
-        const typedData = data as unknown as JurisflixContent[];
+        const typedData = data as JurisflixContent[];
         const themes = typedData.flatMap(item => item.temas_juridicos || []);
         const uniqueThemes = [...new Set(themes)].sort();
         setAllThemes(uniqueThemes);
@@ -78,13 +74,11 @@ const Jurisflix: React.FC = () => {
     }
   });
 
-  // Filter content based on search, tab, and filters
   useEffect(() => {
     if (!jurisflixContent) return;
     
     let filtered = jurisflixContent;
     
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
@@ -94,15 +88,12 @@ const Jurisflix: React.FC = () => {
       );
     }
     
-    // Apply tab filter
     if (selectedTab !== "all") {
       filtered = filtered.filter(item => item.tipo === selectedTab);
     }
     
-    // Apply type filters
     filtered = filtered.filter(item => typeFilters[item.tipo as keyof typeof typeFilters]);
     
-    // Apply theme filters
     if (themeFilters.length > 0) {
       filtered = filtered.filter(item => 
         item.temas_juridicos?.some(tema => themeFilters.includes(tema)) ?? false
@@ -112,7 +103,6 @@ const Jurisflix: React.FC = () => {
     setFilteredContent(filtered);
   }, [jurisflixContent, searchQuery, selectedTab, typeFilters, themeFilters]);
 
-  // Reset filters
   const resetFilters = () => {
     setTypeFilters({
       filme: true,
@@ -122,7 +112,6 @@ const Jurisflix: React.FC = () => {
     setThemeFilters([]);
   };
   
-  // Request AI recommendations
   const handleAiRecommendations = async () => {
     if (!aiRecommendationTheme.trim()) {
       toast.error("Por favor, insira um tema para obter recomendações");
@@ -141,8 +130,7 @@ const Jurisflix: React.FC = () => {
     }
   };
   
-  // Handle content selection
-  const handleSelectContent = (content: JurisflixContentProps) => {
+  const handleSelectContent = (content: JurisflixContent) => {
     if (content.onde_assistir && content.onde_assistir.length > 0) {
       toast.info(`Redirecionando para ${content.onde_assistir[0]}...`, {
         description: "Esta funcionalidade simularia o redirecionamento para a plataforma de streaming."
@@ -154,7 +142,6 @@ const Jurisflix: React.FC = () => {
     }
   };
 
-  // Toggle theme filter
   const toggleThemeFilter = (theme: string) => {
     setThemeFilters(prev => 
       prev.includes(theme) 
@@ -329,7 +316,6 @@ const Jurisflix: React.FC = () => {
           </TabsList>
         </Tabs>
 
-        {/* Destaque carrossel */}
         {!searchQuery && !filterActive && filteredContent.length > 0 && (
           <div className="py-4">
             <h2 className="text-2xl font-semibold mb-4">Em Destaque</h2>
@@ -381,7 +367,6 @@ const Jurisflix: React.FC = () => {
           </div>
         )}
 
-        {/* IA Recommendations */}
         <div className="py-4 bg-primary/5 rounded-lg p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <div className="flex items-center">
@@ -423,7 +408,6 @@ const Jurisflix: React.FC = () => {
           )}
         </div>
 
-        {/* Main content grid */}
         <div className="py-4">
           <h2 className="text-xl font-semibold mb-4">
             {searchQuery 
