@@ -9,6 +9,7 @@ import { Send, Sparkles, BookText, Map, Brain, Newspaper, FileText, Video, Gamep
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { sendMessageToGemini } from "@/utils/geminiAI";
+import { GeminiRequestOptions } from "@/types/supabase";
 
 interface Message {
   id: string;
@@ -25,6 +26,26 @@ interface CommandOption {
   action: string;
   module: string;
 }
+
+/**
+ * Tabela de Funções - AssistenteChat.tsx
+ * -------------------------------------------------------------------------------------------------
+ * | Função                  | Descrição                                                           |
+ * |-------------------------|---------------------------------------------------------------------|
+ * | AssistenteChat          | Componente para chat interativo com IA assistente                   |
+ * | (Componente)            | gerencia mensagens, comandos e resposta da API Gemini               |
+ * | scrollToBottom          | Rola o chat para a parte inferior                                   |
+ * | (Função)                | para manter visível a mensagem mais recente                         |
+ * | handleSubmit            | Processa envio de mensagem e chama a API                            |
+ * | (Função)                | formata dados, gerencia estados e lida com respostas                |
+ * | saveInteraction         | Salva interações do chat no banco de dados                          |
+ * | (Função)                | para manter histórico e análises futuras                            |
+ * | handleCommandClick      | Processa cliques em comandos predefinidos                           |
+ * | (Função)                | insere texto de comando e configura módulo ativo                    |
+ * | renderMessageContent    | Renderiza conteúdo da mensagem com formatação                       |
+ * | (Função)                | suporta diferentes tipos de conteúdo e formatação                   |
+ * -------------------------------------------------------------------------------------------------
+ */
 
 export const AssistenteChat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -175,8 +196,13 @@ export const AssistenteChat: React.FC = () => {
         .concat(userMessage)
         .map(msg => ({ role: msg.role, content: msg.content }));
       
-      // Call Gemini API through our edge function
-      const response = await sendMessageToGemini(apiMessages, currentModule);
+      // Create options for the Gemini API
+      const options: GeminiRequestOptions = currentModule 
+        ? { module: currentModule }
+        : {};
+        
+      // Call Gemini API
+      const response = await sendMessageToGemini(apiMessages, options);
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

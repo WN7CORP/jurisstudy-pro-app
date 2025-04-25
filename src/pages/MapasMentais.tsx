@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { MapaMentalCreator } from "@/components/mapas-mentais/MapaMentalCreator";
 import { MapaMentalViewer } from "@/components/mapas-mentais/MapaMentalViewer";
 import { supabase } from "@/integrations/supabase/client";
+import { MapaMental, MapNode } from "@/types/supabase";
 
 /**
  * Tabela de Funções - MapasMentais.tsx
@@ -28,12 +29,6 @@ import { supabase } from "@/integrations/supabase/client";
  * | (Função)                | para localizar mapas por título ou área                             |
  * -------------------------------------------------------------------------------------------------
  */
-
-interface MapNode {
-  nome: string;
-  descricao?: string;
-  filhos?: MapNode[];
-}
 
 interface MapaMentalData {
   id: string;
@@ -72,8 +67,9 @@ const MapasMentais: React.FC = () => {
         .select('*');
       
       if (userId) {
-        // Buscar mapas do usuário + mapas públicos
-        query = query.or(`criado_por.eq.${userId},publico.eq.true`);
+        // Buscar mapas do usuário + mapas públicos usando string template para construir a query
+        const orCondition = `criado_por.eq.${userId},publico.eq.true`;
+        query = query.or(orCondition);
       } else {
         // Apenas mapas públicos se não estiver logado
         query = query.eq('publico', true);
@@ -86,7 +82,9 @@ const MapasMentais: React.FC = () => {
       }
       
       if (data) {
-        setMapas(data as MapaMentalData[]);
+        // Conversão explícita para o tipo MapaMentalData
+        const typedData = data as unknown as MapaMentalData[];
+        setMapas(typedData);
       }
     } catch (error) {
       console.error("Erro ao buscar mapas mentais:", error);
@@ -98,7 +96,7 @@ const MapasMentais: React.FC = () => {
 
   const handleCreateMap = (mapData: any) => {
     // Quando um novo mapa é criado via IA, adicionamos à lista
-    const newMap = {
+    const newMap: MapaMentalData = {
       id: Date.now().toString(), // Temporário até ser salvo no banco
       titulo: mapData.title,
       area_direito: mapData.area,

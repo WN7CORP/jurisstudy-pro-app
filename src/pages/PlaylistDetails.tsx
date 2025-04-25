@@ -13,6 +13,7 @@ import { Loader2, ChevronLeft, PlayCircle, BookOpen, ArrowUpRight, MessageSquare
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { analyzeLectureTranscription } from '@/utils/geminiAI';
+import { VideoTranscription } from '@/types/supabase';
 
 /**
  * Tabela de Funções - PlaylistDetails.tsx
@@ -49,17 +50,6 @@ interface Playlist {
     id: string;
     nome: string;
   };
-}
-
-interface VideoTranscription {
-  transcricao: string;
-  resumo_ai: string;
-  pontos_chave: {
-    ponto: string;
-    descricao?: string;
-  }[];
-  palavras_chave: string[];
-  duracao: number;
 }
 
 const PlaylistDetails: React.FC = () => {
@@ -112,7 +102,7 @@ const PlaylistDetails: React.FC = () => {
   const fetchVideoTranscription = async (videoId: string) => {
     setLoadingTranscription(true);
     try {
-      // Primeiro, tenta buscar uma transcrição existente
+      // Primeiro, tenta buscar uma transcrição existente usando .maybeSingle() em vez de .single()
       const { data: existingTranscription, error } = await supabase
         .from('video_transcricoes')
         .select('*')
@@ -120,6 +110,7 @@ const PlaylistDetails: React.FC = () => {
         .maybeSingle();
 
       if (existingTranscription) {
+        // Precisamos converter explicitamente para o tipo VideoTranscription
         setTranscription(existingTranscription as unknown as VideoTranscription);
         return;
       }
@@ -143,7 +134,9 @@ const PlaylistDetails: React.FC = () => {
       const aiAnalysis = await analyzeLectureTranscription(mockTranscription);
       
       // Criar objeto de transcrição
-      const newTranscription = {
+      const newTranscription: VideoTranscription = {
+        id: `temp-${Date.now()}`,
+        video_id: videoId,
         transcricao: mockTranscription,
         resumo_ai: aiAnalysis.resumo || "Aula sobre princípios constitucionais fundamentais no direito brasileiro.",
         pontos_chave: aiAnalysis.pontos_chave || [
@@ -169,10 +162,10 @@ const PlaylistDetails: React.FC = () => {
           "Legalidade", "Devido Processo Legal", "Estado de Direito"
         ],
         duracao: 350,
-        video_id: videoId
+        created_at: new Date().toISOString()
       };
       
-      setTranscription(newTranscription as unknown as VideoTranscription);
+      setTranscription(newTranscription);
       
       // Em um ambiente de produção, salvaria no banco de dados
       // Aqui simulamos, mas não inserimos realmente

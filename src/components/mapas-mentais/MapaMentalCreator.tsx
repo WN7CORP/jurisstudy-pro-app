@@ -9,6 +9,7 @@ import { Loader2, Brain, Save, Download } from "lucide-react";
 import { toast } from "sonner";
 import { generateMindMap } from "@/utils/geminiAI";
 import { supabase } from "@/integrations/supabase/client";
+import { MapNode } from "@/types/supabase";
 
 /**
  * Tabela de Funções - MapaMentalCreator.tsx
@@ -21,11 +22,18 @@ import { supabase } from "@/integrations/supabase/client";
  * | (Função)                | Salva o resultado no banco de dados se o usuário estiver autenticado|
  * | saveMapToDatabase       | Salva o mapa mental gerado no banco de dados                        |
  * | (Função)                | com os metadados do usuário e configurações                         |
+ * | downloadMapAsJson       | Baixa o mapa mental como arquivo JSON                               |
+ * | (Função)                | para uso offline ou backup                                          |
  * -------------------------------------------------------------------------------------------------
  */
 
 interface MapaMentalCreatorProps {
   onCreateMap?: (data: any) => void;
+}
+
+interface MindMapData {
+  central: string;
+  filhos: MapNode[];
 }
 
 export const MapaMentalCreator: React.FC<MapaMentalCreatorProps> = ({ onCreateMap }) => {
@@ -96,7 +104,8 @@ export const MapaMentalCreator: React.FC<MapaMentalCreatorProps> = ({ onCreateMa
       
       const userId = session.session.user.id;
       
-      const { data, error } = await supabase
+      // Usar o método customInsert para inserir na tabela mapas_mentais
+      const { error } = await supabase
         .from('mapas_mentais')
         .insert({
           titulo: title,
@@ -105,9 +114,7 @@ export const MapaMentalCreator: React.FC<MapaMentalCreatorProps> = ({ onCreateMa
           criado_por: userId,
           criado_por_ia: true,
           publico: false
-        })
-        .select()
-        .single();
+        });
       
       if (error) {
         throw error;

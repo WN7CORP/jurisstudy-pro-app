@@ -14,6 +14,7 @@ import { getJurisflixRecommendations } from "@/utils/geminiAI";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { JurisflixContent } from "@/types/supabase";
 
 /**
  * Tabela de Funções - Jurisflix.tsx
@@ -64,12 +65,16 @@ const Jurisflix: React.FC = () => {
       
       // Extract all unique themes
       if (data) {
-        const themes = data.flatMap(item => item.temas_juridicos || []);
+        // Tratar os dados como JurisflixContent
+        const typedData = data as unknown as JurisflixContent[];
+        const themes = typedData.flatMap(item => item.temas_juridicos || []);
         const uniqueThemes = [...new Set(themes)].sort();
         setAllThemes(uniqueThemes);
+        
+        return typedData;
       }
       
-      return data as JurisflixContentProps[];
+      return [] as JurisflixContent[];
     }
   });
 
@@ -85,7 +90,7 @@ const Jurisflix: React.FC = () => {
       filtered = filtered.filter(item => 
         item.titulo.toLowerCase().includes(query) || 
         item.sinopse.toLowerCase().includes(query) ||
-        item.temas_juridicos.some(tema => tema.toLowerCase().includes(query))
+        (item.temas_juridicos?.some(tema => tema.toLowerCase().includes(query)) ?? false)
       );
     }
     
@@ -95,12 +100,12 @@ const Jurisflix: React.FC = () => {
     }
     
     // Apply type filters
-    filtered = filtered.filter(item => typeFilters[item.tipo]);
+    filtered = filtered.filter(item => typeFilters[item.tipo as keyof typeof typeFilters]);
     
     // Apply theme filters
     if (themeFilters.length > 0) {
       filtered = filtered.filter(item => 
-        item.temas_juridicos.some(tema => themeFilters.includes(tema))
+        item.temas_juridicos?.some(tema => themeFilters.includes(tema)) ?? false
       );
     }
     

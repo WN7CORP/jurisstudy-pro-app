@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { GeminiRequestOptions } from "@/types/supabase";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -9,13 +9,6 @@ interface Message {
 interface GeminiResponse {
   response: string | any;
   error?: string;
-}
-
-interface GeminiRequestOptions {
-  module?: string;
-  systemPrompt?: string;
-  metadata?: Record<string, any>;
-  responseFormat?: "text" | "json";
 }
 
 /**
