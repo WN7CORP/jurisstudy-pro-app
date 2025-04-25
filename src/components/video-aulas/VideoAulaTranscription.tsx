@@ -1,38 +1,24 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { VideoTranscription } from "@/types/supabase";
 
 /**
  * Tabela de Funções - VideoAulaTranscription.tsx
  * -------------------------------------------------------------------------------------------------
  * | Função                  | Descrição                                                           |
  * |-------------------------|---------------------------------------------------------------------|
- * | VideoAulaTranscription  | Componente que exibe a transcrição de uma vídeo-aula                |
- * | (Componente)            | com resumo, pontos-chave e palavras-chave                           |
- * | formatTranscription     | Formata a transcrição para exibição com quebras de linha            |
- * | (Função)                | e parágrafos para melhor legibilidade                               |
+ * | VideoAulaTranscription  | Componente que exibe a transcrição de uma vídeo-aula com resumo,    |
+ * | (Componente)            | pontos-chave e palavras-chave gerados por IA                        |
  * -------------------------------------------------------------------------------------------------
  */
 
-interface VideoTranscription {
-  transcricao: string;
-  resumo_ai: string;
-  pontos_chave: {
-    ponto: string;
-    descricao?: string;
-  }[];
-  palavras_chave: string[];
-  duracao: number;
-}
-
 interface VideoAulaTranscriptionProps {
   transcription: VideoTranscription;
-  className?: string;
 }
 
-export const VideoAulaTranscription: React.FC<VideoAulaTranscriptionProps> = ({ transcription, className }) => {
+export const VideoAulaTranscription: React.FC<VideoAulaTranscriptionProps> = ({ transcription }) => {
   
   const formatTranscription = (text: string) => {
     // Dividir por parágrafos e adicionar espaçamento adequado
@@ -50,7 +36,7 @@ export const VideoAulaTranscription: React.FC<VideoAulaTranscriptionProps> = ({ 
   };
 
   return (
-    <div className={className}>
+    <div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="md:col-span-2">
           <CardHeader>

@@ -106,13 +106,17 @@ const PlaylistDetails: React.FC = () => {
         .maybeSingle();
 
       if (existingTranscription) {
-        const transformedData = {
+        const transformedData: VideoTranscription = {
           ...existingTranscription,
-          pontos_chave: existingTranscription.pontos_chave as unknown as { ponto: string; descricao?: string }[] | null,
-          palavras_chave: existingTranscription.palavras_chave as string[] | null
+          pontos_chave: existingTranscription.pontos_chave as {
+            ponto: string;
+            descricao?: string;
+          }[] | null,
+          palavras_chave: existingTranscription.palavras_chave as string[] | null,
+          resumo_ai: existingTranscription.resumo_ai || null
         };
         
-        setTranscription(transformedData as VideoTranscription);
+        setTranscription(transformedData);
         return;
       }
 
@@ -134,7 +138,7 @@ const PlaylistDetails: React.FC = () => {
         id: `temp-${Date.now()}`,
         video_id: videoId,
         transcricao: mockTranscription,
-        resumo_ai: aiAnalysis.resumo || "Aula sobre princípios constitucionais fundamentais no direito brasileiro.",
+        resumo_ai: aiAnalysis.resumo || null,
         pontos_chave: aiAnalysis.pontos_chave || [
           { 
             ponto: "Dignidade da Pessoa Humana",
@@ -306,7 +310,7 @@ const PlaylistDetails: React.FC = () => {
                         <span>Carregando transcrição...</span>
                       </div>
                     ) : transcription ? (
-                      <VideoAulaTranscription transcription={transcription} />
+                      <VideoAulaTranscription transcription={transcription as VideoTranscription} />
                     ) : (
                       <div className="text-center py-12">
                         <p className="text-muted-foreground">
@@ -478,7 +482,7 @@ const PlaylistDetails: React.FC = () => {
                         <span>Carregando transcrição...</span>
                       </div>
                     ) : transcription ? (
-                      <VideoAulaTranscription transcription={transcription} />
+                      <VideoAulaTranscription transcription={transcription as VideoTranscription} />
                     ) : (
                       <div className="text-center py-12">
                         <p className="text-muted-foreground">
