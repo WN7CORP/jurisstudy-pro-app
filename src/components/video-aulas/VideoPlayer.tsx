@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 /**
@@ -7,6 +8,10 @@ import React from 'react';
  * |-------------------------|---------------------------------------------------------------------|
  * | VideoPlayer             | Componente para reprodução de vídeos com suporte a várias fontes    |
  * | (Componente)            | incluindo YouTube, Vimeo e URLs diretas de vídeo                    |
+ * | getYouTubeId            | Extrai o ID de um vídeo do YouTube a partir da URL                  |
+ * | (Função)                | usando expressões regulares para identificar o formato              |
+ * | getVimeoId              | Extrai o ID de um vídeo do Vimeo a partir da URL                   |
+ * | (Função)                | usando expressões regulares para identificar o formato              |
  * -------------------------------------------------------------------------------------------------
  */
 

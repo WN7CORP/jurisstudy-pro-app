@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -28,20 +29,6 @@ import { MapaMental, MapNode } from "@/types/supabase";
  * | (Função)                | para localizar mapas por título ou área                             |
  * -------------------------------------------------------------------------------------------------
  */
-
-interface MapaMentalData {
-  id: string;
-  titulo: string;
-  area_direito: string;
-  estrutura: {
-    central: string;
-    filhos: MapNode[];
-  };
-  criado_por: string;
-  criado_por_ia: boolean;
-  publico: boolean;
-  created_at: string;
-}
 
 const MapasMentais: React.FC = () => {
   const [mapas, setMapas] = useState<MapaMental[]>([]);
@@ -79,7 +66,12 @@ const MapasMentais: React.FC = () => {
       }
       
       if (data) {
-        setMapas(data as MapaMental[]);
+        // Transform the returned data to ensure it matches our MapaMental type
+        const transformedData = data.map(item => ({
+          ...item,
+          estrutura: item.estrutura as unknown as { central: string; filhos: MapNode[] }
+        }));
+        setMapas(transformedData as MapaMental[]);
       }
     } catch (error) {
       console.error("Erro ao buscar mapas mentais:", error);
@@ -89,20 +81,9 @@ const MapasMentais: React.FC = () => {
     }
   };
 
-  const handleCreateMap = (mapData: any) => {
-    const newMap: MapaMentalData = {
-      id: Date.now().toString(),
-      titulo: mapData.title,
-      area_direito: mapData.area,
-      estrutura: mapData.content,
-      criado_por: 'local',
-      criado_por_ia: true,
-      publico: false,
-      created_at: new Date().toISOString()
-    };
-    
-    setMapas(prevMapas => [newMap, ...prevMapas]);
-    setSelectedMap(newMap);
+  const handleCreateMap = (mapData: MapaMental) => {
+    setMapas(prevMapas => [mapData, ...prevMapas]);
+    setSelectedMap(mapData);
     setActiveTab("visualizar");
   };
 
@@ -121,7 +102,7 @@ const MapasMentais: React.FC = () => {
     );
   });
 
-  const renderMapCard = (map: MapaMentalData) => (
+  const renderMapCard = (map: MapaMental) => (
     <Card 
       key={map.id} 
       className="cursor-pointer hover:bg-secondary/50 transition-colors"
